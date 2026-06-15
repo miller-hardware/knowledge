@@ -1,0 +1,878 @@
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#CC0000;--red-dk:#a30000;
+  --green:#2a5c1a;--green-dk:#1e4512;
+  --amber:#c47c00;
+  --blue:#1a3c5c;
+  --dark:#1a1a1a;--gray2:#555;--muted:#888;
+  --silver:#e0e0e0;--off:#f5f2ee;--white:#ffffff;
+}
+body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background:var(--off);min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh}
+.hidden{display:none!important}
+
+/* TOPBAR */
+.topbar{background:var(--dark);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.topbar-brand{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;color:#fff;letter-spacing:.02em}
+.topbar-brand span{color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.sync-pill{font-size:11px;padding:3px 8px;border-radius:3px;display:flex;align-items:center;gap:5px;font-weight:600}
+.sync-pill.ok{background:#2d5a1b;color:#b8e68a}
+.sync-pill.warn{background:#5a3e1b;color:#f5c87a}
+.sync-pill.err{background:#5a1b1b;color:#f5a0a0}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.g{background:#7ec94a}.dot.a{background:#f5a623}.dot.r{background:#e24b4a}
+.btn-admin-toggle{background:transparent;border:1.5px solid #555;color:#bbb;font-size:12px;font-weight:700;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:.04em}
+.btn-admin-toggle.on{border-color:var(--amber);color:var(--amber)}
+
+/* NAVBAR */
+.navbar{background:var(--white);border-bottom:3px solid var(--red);display:flex;align-items:center;padding:0 14px;min-height:52px}
+.tabs{display:flex;gap:2px;height:52px;overflow-x:auto}
+.tab{display:flex;align-items:center;padding:0 12px;font-size:15px;font-weight:600;cursor:pointer;color:var(--gray2);border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;flex-shrink:0}
+.tab:hover{color:var(--dark)}
+.tab.active{color:var(--red);border-bottom-color:var(--red)}
+.tab-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 5px;margin-left:4px}
+
+/* VIEWS */
+.view{padding:16px 14px;max-width:720px;margin:0 auto;width:100%}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:4px;border:1.5px solid var(--silver);background:var(--white);font-size:14px;font-weight:600;cursor:pointer;color:var(--dark);font-family:'Barlow',sans-serif}
+.btn:hover{background:var(--off)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-red:hover{background:var(--red-dk);background:var(--red-dk)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:var(--green-dk)}
+.btn-sm{font-size:13px;padding:5px 11px}
+.btn-xs{font-size:12px;padding:4px 9px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--gray2)}
+.btn-ghost:hover{background:var(--off)}
+.btn-filt{font-size:13px;padding:5px 11px;border-color:var(--silver)}
+.btn-filt.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+
+/* FORMS */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--gray2);margin-bottom:5px}
+.field .hint{font-size:12px;color:var(--muted);margin-top:3px;font-style:italic}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--silver);border-radius:4px;font-size:15px;font-family:'Barlow',sans-serif;color:var(--dark);background:var(--white);outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--dark)}
+.field textarea{resize:vertical;min-height:90px}
+
+/* CATEGORY PILLS */
+.cat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.cat-pill{padding:7px 18px;border-radius:20px;border:2px solid var(--silver);background:var(--white);font-size:14px;font-weight:700;cursor:pointer;color:var(--gray2);font-family:'Barlow',sans-serif}
+.cat-pill:hover{border-color:var(--dark)}
+.cat-pill.advice.sel{background:var(--blue);border-color:var(--blue);color:#fff}
+.cat-pill.technical.sel{background:var(--green);border-color:var(--green);color:#fff}
+.cat-pill.customers.sel{background:var(--amber);border-color:var(--amber);color:#fff}
+
+/* CAPTURE CARD */
+.capture-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:20px;margin-top:4px}
+.capture-footer{font-size:13px;color:var(--muted);text-align:center;margin-top:16px;font-style:italic}
+
+/* ENTRY CARDS */
+.entry-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px;cursor:pointer}
+.entry-card:hover{border-color:#bbb}
+.entry-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.cat-tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px;flex-shrink:0}
+.cat-tag.advice{background:#e4eef8;color:var(--blue)}
+.cat-tag.technical{background:#eaf4e4;color:var(--green)}
+.cat-tag.customers{background:#fdf3e0;color:var(--amber)}
+.status-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;margin-left:auto}
+.status-tag.unfiled{background:#f0f0f0;color:#888}
+.status-tag.filed{background:#eaf4e4;color:var(--green)}
+.entry-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.entry-body{font-size:14px;color:var(--gray2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.entry-meta{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* PILE HEADER */
+.pile-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.pile-counter{font-size:14px;font-weight:600;color:var(--gray2)}
+.pile-counter strong{color:var(--red)}
+.pile-filters{display:flex;gap:6px}
+
+/* MANUAL */
+.manual-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.manual-cat-head{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--dark);letter-spacing:.02em;margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--silver);text-transform:uppercase}
+.manual-sec-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.manual-entry{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:16px;margin-bottom:10px}
+.manual-entry-title{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:8px}
+.manual-entry-body{font-size:14px;color:var(--gray2);line-height:1.6;white-space:pre-wrap}
+.manual-entry-foot{font-size:12px;color:var(--muted);margin-top:8px}
+.manual-empty{text-align:center;padding:48px 16px;color:var(--muted)}
+
+/* CONSOLIDATION */
+.con-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.con-section-head{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+.con-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px}
+.con-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--white);border-radius:6px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;z-index:101;padding:22px}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;margin-bottom:18px;color:var(--dark)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.modal-raw{background:var(--off);border-radius:4px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--gray2);line-height:1.6}
+.modal-raw strong{color:var(--dark);display:block;margin-bottom:2px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 20px;border-radius:4px;font-size:14px;font-weight:600;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* PRINT */
+@media print{
+  .topbar,.navbar,.modal-overlay,.toast,.con-actions,.btn-xs{display:none!important}
+  .view{max-width:100%;padding:0}
+  .manual-entry{border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
+}
+
+@media(max-width:540px){
+  .view{padding:12px 10px}
+  .capture-card{padding:16px}
+  .modal{padding:18px 14px;width:95%}
+  .cat-pills{gap:6px}
+  .cat-pill{padding:6px 13px;font-size:13px}
+}
+</style>
+
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="topbar-brand"><span>Miller</span> Generations</div>
+  <div class="topbar-right">
+    <div id="sync-pill" class="sync-pill warn"><div class="dot a"></div>connecting</div>
+    <button id="btn-admin-toggle" class="btn-admin-toggle" onclick="toggleAdmin()">Admin</button>
+  </div>
+</div>
+
+<div class="navbar">
+  <div class="tabs">
+    <div id="tbl-catch" class="tab active" onclick="showTab('catch')">Catch One</div>
+    <div id="tbl-pile" class="tab" onclick="showTab('pile')">The Pile <span id="pile-badge" class="tab-badge hidden">0</span></div>
+    <div id="tbl-manual" class="tab" onclick="showTab('manual')">The Manual</div>
+    <div id="tbl-consolidate" class="tab hidden" onclick="showTab('consolidate')">Consolidate</div>
+  </div>
+</div>
+
+<!-- CATCH ONE -->
+<div id="view-catch" class="view">
+  <div class="capture-card">
+    <div class="cat-pills">
+      <button class="cat-pill advice sel" onclick="pickCategory('advice')">Advice</button>
+      <button class="cat-pill technical" onclick="pickCategory('technical')">Technical</button>
+      <button class="cat-pill customers" onclick="pickCategory('customers')">Customers</button>
+    </div>
+    <div class="field">
+      <label>Caught one?</label>
+      <input type="text" id="c-came-up" placeholder="What came up?" maxlength="200" />
+    </div>
+    <div class="field">
+      <label>What'd you learn — your words</label>
+      <textarea id="c-learned" placeholder="Write it out..." rows="4"></textarea>
+      <div class="hint">Tell it like you'd tell the next new guy.</div>
+    </div>
+    <div class="field">
+      <label>Who told you?</label>
+      <input type="text" id="c-source" placeholder="Name of the person you learned it from" maxlength="100" />
+    </div>
+    <button class="btn btn-red" style="width:100%;justify-content:center;font-size:16px;padding:12px" onclick="submitEntry()">Drop it in the pile</button>
+    <div class="capture-footer">Goes to the pile. Someone files it into the manual later.</div>
+  </div>
+</div>
+
+<!-- THE PILE -->
+<div id="view-pile" class="view hidden">
+  <div class="pile-top">
+    <div id="pile-counter" class="pile-counter">loading...</div>
+    <div class="pile-filters">
+      <button class="btn-filt btn on" id="pf-all" onclick="setPileFilter('all')">All</button>
+      <button class="btn-filt btn" id="pf-unfiled" onclick="setPileFilter('unfiled')">Unfiled</button>
+      <button class="btn-filt btn" id="pf-filed" onclick="setPileFilter('filed')">Filed</button>
+    </div>
+  </div>
+  <div id="pile-list"></div>
+</div>
+
+<!-- THE MANUAL -->
+<div id="view-manual" class="view hidden">
+  <div class="manual-top">
+    <div id="manual-count" style="font-size:14px;color:var(--muted)"></div>
+    <button class="btn btn-sm" onclick="exportManual()">Print / Export</button>
+  </div>
+  <div id="manual-body"></div>
+</div>
+
+<!-- CONSOLIDATE -->
+<div id="view-consolidate" class="view hidden">
+  <div id="consolidate-body"></div>
+</div>
+
+</div><!-- .app -->
+
+<!-- OVERLAYS -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()"></div>
+
+<div id="modal-admin" class="modal hidden">
+  <div class="modal-title">Admin Access</div>
+  <div class="field">
+    <label>Access Code</label>
+    <input type="password" id="admin-code-input" placeholder="Enter code" onkeydown="if(event.key==='Enter')doAdminLogin()" />
+  </div>
+  <div id="admin-err" class="hidden" style="color:var(--red);font-size:13px;margin-bottom:10px">Wrong code.</div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-red" onclick="doAdminLogin()">Unlock</button>
+  </div>
+</div>
+
+<div id="modal-entry" class="modal hidden">
+  <div id="modal-entry-body"></div>
+  <div class="modal-footer" id="modal-entry-footer">
+    <button class="btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div id="modal-file" class="modal hidden">
+  <div class="modal-title">File to Manual</div>
+  <div id="modal-file-raw" class="modal-raw"></div>
+  <div class="field">
+    <label>Section</label>
+    <input type="text" id="mf-section" placeholder="e.g. Saw Shop, Accounts, Hiring…" maxlength="100" />
+    <div class="hint">Where this goes in the manual — be consistent with existing sections.</div>
+  </div>
+  <div class="field">
+    <label>Title</label>
+    <input type="text" id="mf-title" maxlength="200" />
+  </div>
+  <div class="field">
+    <label>Clean Body</label>
+    <textarea id="mf-body" rows="6"></textarea>
+    <div class="hint">Plain language. Write it for the next new guy.</div>
+  </div>
+  <div class="field">
+    <label>Credit</label>
+    <input type="text" id="mf-sources" maxlength="200" />
+    <div class="hint">Names separated by commas.</div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-green" onclick="doFile()">File it</button>
+  </div>
+</div>
+
+<div id="modal-manual-edit" class="modal hidden">
+  <div class="modal-title">Edit Manual Entry</div>
+  <div class="field">
+    <label>Category</label>
+    <select id="me-cat">
+      <option value="advice">Advice</option>
+      <option value="technical">Technical</option>
+      <option value="customers">Customers</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Section</label>
+    <input type="text" id="me-section" maxlength="100" />
+  </div>
+  <div class="field">
+    <label>Title</label>
+    <input type="text" id="me-title" maxlength="200" />
+  </div>
+  <div class="field">
+    <label>Body</label>
+    <textarea id="me-body" rows="8"></textarea>
+  </div>
+  <div class="field">
+    <label>Credit</label>
+    <input type="text" id="me-sources" maxlength="200" />
+    <div class="hint">Comma-separated names.</div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" style="margin-right:auto;color:var(--red)" onclick="deleteManualEntry()">Delete</button>
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-green" onclick="saveManualEdit()">Save</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+var FB_BAKED = {
+  apiKey: "AIzaSyDNEl1mXtNLGN0nsvr1lZi7SJzsiypJFLM",
+  authDomain: "millersawshop-f716a.firebaseapp.com",
+  databaseURL: "https://millersawshop-f716a-default-rtdb.firebaseio.com",
+  projectId: "millersawshop-f716a",
+  storageBucket: "millersawshop-f716a.firebasestorage.app",
+  messagingSenderId: "187757043776",
+  appId: "1:187757043776:web:a0cce22b59172da8db7fa5"
+};
+
+var ADMIN_CODE = "8704494255";
+var DB_ENT = "kb_entries";
+var DB_MAN = "kb_manual";
+
+var db;
+var isAdmin = false;
+var curTab = "catch";
+var entries = {};
+var manual = {};
+var pileFilter = "all";
+var pickCat = "advice";
+var fileEntryId = null;
+var editManualId = null;
+var toastTimer = null;
+
+/* ---- UTILITIES ---- */
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function fmtDate(ts) {
+  var d = new Date(ts);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function catLabel(c) {
+  return c === 'advice' ? 'Advice' : c === 'technical' ? 'Technical' : 'Customers';
+}
+
+function toast(msg, dur) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, dur || 2400);
+}
+
+function syncPill(state) {
+  var el = document.getElementById('sync-pill');
+  var dot = state === 'ok' ? '<div class="dot g"></div>' :
+            state === 'err' ? '<div class="dot r"></div>' : '<div class="dot a"></div>';
+  var lbl = state === 'ok' ? 'live' : state === 'err' ? 'offline' : 'connecting';
+  el.className = 'sync-pill ' + (state === 'ok' ? 'ok' : state === 'err' ? 'err' : 'warn');
+  el.innerHTML = dot + lbl;
+}
+
+function closeModal() {
+  ['modal-admin', 'modal-entry', 'modal-file', 'modal-manual-edit'].forEach(function(id) {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById('modal-overlay').classList.add('hidden');
+  fileEntryId = null;
+  editManualId = null;
+}
+
+function openModal(id) {
+  closeModal();
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function showTab(t) {
+  curTab = t;
+  ['catch', 'pile', 'manual', 'consolidate'].forEach(function(n) {
+    document.getElementById('view-' + n).classList.toggle('hidden', n !== t);
+    document.getElementById('tbl-' + n).classList.toggle('active', n === t);
+  });
+  if (t === 'pile') renderPile();
+  if (t === 'manual') renderManual();
+  if (t === 'consolidate') renderConsolidate();
+}
+
+/* ---- ADMIN ---- */
+
+function toggleAdmin() {
+  if (isAdmin) {
+    isAdmin = false;
+    var tog = document.getElementById('btn-admin-toggle');
+    tog.classList.remove('on');
+    tog.textContent = 'Admin';
+    document.getElementById('tbl-consolidate').classList.add('hidden');
+    if (curTab === 'consolidate') showTab('catch');
+    if (curTab === 'pile') renderPile();
+    if (curTab === 'manual') renderManual();
+    toast('Admin off');
+  } else {
+    document.getElementById('admin-code-input').value = '';
+    document.getElementById('admin-err').classList.add('hidden');
+    openModal('modal-admin');
+    setTimeout(function() { document.getElementById('admin-code-input').focus(); }, 80);
+  }
+}
+
+function doAdminLogin() {
+  var raw = document.getElementById('admin-code-input').value;
+  var code = raw.replace(/\D/g, '');
+  if (code === ADMIN_CODE) {
+    isAdmin = true;
+    closeModal();
+    var tog = document.getElementById('btn-admin-toggle');
+    tog.classList.add('on');
+    tog.textContent = 'Admin ✓';
+    document.getElementById('tbl-consolidate').classList.remove('hidden');
+    toast('Admin unlocked');
+  } else {
+    document.getElementById('admin-err').classList.remove('hidden');
+    document.getElementById('admin-code-input').value = '';
+    document.getElementById('admin-code-input').focus();
+  }
+}
+
+/* ---- CATEGORY PICKER ---- */
+
+function pickCategory(cat) {
+  pickCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(function(el) {
+    el.classList.remove('sel');
+  });
+  var pill = document.querySelector('.cat-pill.' + cat);
+  if (pill) pill.classList.add('sel');
+}
+
+/* ---- CAPTURE ---- */
+
+function submitEntry() {
+  var cameUp = document.getElementById('c-came-up').value.trim();
+  var learned = document.getElementById('c-learned').value.trim();
+  var source = document.getElementById('c-source').value.trim();
+  if (!cameUp) {
+    toast('What came up?');
+    document.getElementById('c-came-up').focus();
+    return;
+  }
+  if (!learned) {
+    toast("What'd you learn?");
+    document.getElementById('c-learned').focus();
+    return;
+  }
+  var entry = {
+    createdAt: Date.now(),
+    category: pickCat,
+    whatCameUp: cameUp,
+    whatLearned: learned,
+    source: source,
+    loggedBy: '',
+    status: 'unfiled',
+    manualSection: null,
+    photoUrl: null
+  };
+  db.ref(DB_ENT).push(entry, function(err) {
+    if (err) { toast('Save failed — check connection'); return; }
+    document.getElementById('c-came-up').value = '';
+    document.getElementById('c-learned').value = '';
+    document.getElementById('c-source').value = '';
+    toast('Dropped in the pile.');
+  });
+}
+
+/* ---- PILE ---- */
+
+function setPileFilter(f) {
+  pileFilter = f;
+  ['all', 'unfiled', 'filed'].forEach(function(n) {
+    document.getElementById('pf-' + n).classList.toggle('on', n === f);
+  });
+  renderPile();
+}
+
+function updatePileBadge() {
+  var unfiled = Object.values(entries).filter(function(e) { return e.status === 'unfiled'; }).length;
+  var badge = document.getElementById('pile-badge');
+  if (unfiled > 0) {
+    badge.textContent = unfiled;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function renderPile() {
+  var list = document.getElementById('pile-list');
+  var all = Object.entries(entries).sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
+  var filtered = all.filter(function(p) {
+    if (pileFilter === 'all') return true;
+    return p[1].status === pileFilter;
+  });
+  var unfiledCount = all.filter(function(p) { return p[1].status === 'unfiled'; }).length;
+  var filedCount = all.filter(function(p) { return p[1].status === 'filed'; }).length;
+  document.getElementById('pile-counter').innerHTML =
+    '<strong>' + unfiledCount + '</strong> unfiled &nbsp;/&nbsp; ' + filedCount + ' filed';
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:15px">Nothing here yet.</div>';
+    return;
+  }
+  var html = '';
+  filtered.forEach(function(pair) {
+    var id = pair[0];
+    var e = pair[1];
+    html += '<div class="entry-card" onclick="openEntry(\'' + id + '\')">';
+    html += '<div class="entry-header">';
+    html += '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>';
+    html += '<span class="status-tag ' + esc(e.status) + '">' + esc(e.status) + '</span>';
+    html += '</div>';
+    html += '<div class="entry-title">' + esc(e.whatCameUp) + '</div>';
+    html += '<div class="entry-body">' + esc(e.whatLearned) + '</div>';
+    html += '<div class="entry-meta">';
+    if (e.source) html += 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ';
+    html += fmtDate(e.createdAt);
+    if (e.manualSection) html += ' &nbsp;&middot;&nbsp; filed: ' + esc(e.manualSection);
+    html += '</div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function openEntry(id) {
+  var e = entries[id];
+  if (!e) return;
+  var bodyEl = document.getElementById('modal-entry-body');
+  bodyEl.innerHTML =
+    '<div class="modal-title" style="margin-bottom:8px">' + esc(e.whatCameUp) + '</div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:14px">' +
+    '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>' +
+    '<span class="status-tag ' + esc(e.status) + '">' + esc(e.status) + '</span>' +
+    '</div>' +
+    '<div style="font-size:15px;line-height:1.6;white-space:pre-wrap;margin-bottom:12px">' + esc(e.whatLearned) + '</div>' +
+    '<div style="font-size:13px;color:var(--muted)">' +
+    (e.source ? 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ' : '') +
+    fmtDate(e.createdAt) +
+    (e.manualSection ? ' &nbsp;&middot;&nbsp; filed: ' + esc(e.manualSection) : '') +
+    '</div>';
+  var footerEl = document.getElementById('modal-entry-footer');
+  if (isAdmin) {
+    footerEl.innerHTML =
+      '<button class="btn btn-ghost" style="margin-right:auto;color:var(--red)" onclick="deleteEntry(\'' + id + '\')">Delete</button>' +
+      (e.status === 'unfiled'
+        ? '<button class="btn" onclick="closeModal()">Close</button><button class="btn btn-green" onclick="closeModal();openFileModal(\'' + id + '\')">File to Manual</button>'
+        : '<button class="btn" onclick="closeModal()">Close</button>');
+  } else {
+    footerEl.innerHTML = '<button class="btn" onclick="closeModal()">Close</button>';
+  }
+  openModal('modal-entry');
+}
+
+function deleteEntry(id) {
+  if (!isAdmin) return;
+  if (!confirm('Delete this entry? Cannot undo.')) return;
+  db.ref(DB_ENT + '/' + id).remove(function(err) {
+    if (err) { toast('Delete failed'); return; }
+    closeModal();
+    toast('Entry deleted');
+  });
+}
+
+/* ---- MANUAL ---- */
+
+function renderManual() {
+  var body = document.getElementById('manual-body');
+  var allM = Object.entries(manual);
+  var countEl = document.getElementById('manual-count');
+  countEl.textContent = allM.length === 0 ? '' : allM.length + (allM.length === 1 ? ' entry' : ' entries');
+  if (allM.length === 0) {
+    body.innerHTML = '<div class="manual-empty"><p style="font-size:15px;margin-bottom:8px">The manual is empty.</p><p style="font-size:13px">Entries show up here after consolidation.</p></div>';
+    return;
+  }
+  var cats = ['advice', 'technical', 'customers'];
+  var catLabels = { advice: 'Advice', technical: 'Technical', customers: 'Customers' };
+  var html = '';
+  cats.forEach(function(cat) {
+    var items = allM.filter(function(p) { return p[1].category === cat; });
+    if (!items.length) return;
+    html += '<div class="manual-cat-head">' + catLabels[cat] + '</div>';
+    var sections = {};
+    items.forEach(function(p) {
+      var sec = p[1].section || 'General';
+      if (!sections[sec]) sections[sec] = [];
+      sections[sec].push(p);
+    });
+    Object.keys(sections).sort().forEach(function(sec) {
+      if (sec !== 'General') {
+        html += '<div class="manual-sec-label">' + esc(sec) + '</div>';
+      }
+      var sorted = sections[sec].slice().sort(function(a, b) {
+        var ta = (a[1].title || '').toLowerCase();
+        var tb = (b[1].title || '').toLowerCase();
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      });
+      sorted.forEach(function(p) {
+        var mid = p[0];
+        var m = p[1];
+        html += '<div class="manual-entry">';
+        html += '<div class="manual-entry-title">' + esc(m.title) + '</div>';
+        html += '<div class="manual-entry-body">' + esc(m.cleanBody) + '</div>';
+        html += '<div class="manual-entry-foot">';
+        if (m.sources && m.sources.length) html += 'per ' + esc(m.sources.join(', '));
+        if (m.createdAt) html += (m.sources && m.sources.length ? ' &nbsp;&middot;&nbsp; ' : '') + fmtDate(m.createdAt);
+        html += '</div>';
+        if (isAdmin) {
+          html += '<div style="margin-top:10px"><button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();openManualEdit(\'' + mid + '\')">Edit</button></div>';
+        }
+        html += '</div>';
+      });
+    });
+  });
+  body.innerHTML = html;
+}
+
+function exportManual() {
+  var allM = Object.entries(manual);
+  if (!allM.length) { toast('The manual is empty.'); return; }
+  var cats = ['advice', 'technical', 'customers'];
+  var catLabels = { advice: 'ADVICE', technical: 'TECHNICAL', customers: 'CUSTOMERS' };
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<title>Miller Generations — The Manual</title>' +
+    '<style>body{font-family:Georgia,serif;font-size:14px;max-width:720px;margin:40px auto;color:#1a1a1a;line-height:1.6}' +
+    'h1{font-size:28px;font-weight:900;letter-spacing:.02em;margin-bottom:2px}' +
+    '.sub{font-size:13px;color:#888;margin-bottom:40px}' +
+    'h2{font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-top:3px solid #1a1a1a;padding-top:10px;margin:32px 0 10px}' +
+    'h3{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;margin:18px 0 6px}' +
+    '.entry{border-left:3px solid #ddd;padding:10px 14px;margin-bottom:14px;break-inside:avoid}' +
+    '.entry-title{font-weight:700;font-size:15px;margin-bottom:6px}' +
+    '.entry-body{white-space:pre-wrap;color:#333;font-size:14px}' +
+    '.entry-foot{font-size:12px;color:#999;margin-top:6px}' +
+    '@media print{body{margin:20px;font-size:12px}h1{font-size:22px}}</style></head><body>' +
+    '<h1>Miller Generations</h1>' +
+    '<div class="sub">The Manual &mdash; printed ' +
+    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
+    '</div>';
+  cats.forEach(function(cat) {
+    var items = allM.filter(function(p) { return p[1].category === cat; });
+    if (!items.length) return;
+    html += '<h2>' + catLabels[cat] + '</h2>';
+    var sections = {};
+    items.forEach(function(p) {
+      var sec = p[1].section || 'General';
+      if (!sections[sec]) sections[sec] = [];
+      sections[sec].push(p);
+    });
+    Object.keys(sections).sort().forEach(function(sec) {
+      if (sec !== 'General') html += '<h3>' + sec.replace(/</g, '&lt;') + '</h3>';
+      var sorted = sections[sec].slice().sort(function(a, b) {
+        var ta = (a[1].title || '').toLowerCase();
+        var tb = (b[1].title || '').toLowerCase();
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      });
+      sorted.forEach(function(p) {
+        var m = p[1];
+        html += '<div class="entry">';
+        html += '<div class="entry-title">' + (m.title || '').replace(/</g, '&lt;') + '</div>';
+        html += '<div class="entry-body">' + (m.cleanBody || '').replace(/</g, '&lt;') + '</div>';
+        if (m.sources && m.sources.length) {
+          html += '<div class="entry-foot">per ' + m.sources.join(', ').replace(/</g, '&lt;') + '</div>';
+        }
+        html += '</div>';
+      });
+    });
+  });
+  html += '</body></html>';
+  var w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); }
+}
+
+/* ---- CONSOLIDATION ---- */
+
+function renderConsolidate() {
+  if (!isAdmin) return;
+  var body = document.getElementById('consolidate-body');
+  var unfiled = Object.entries(entries)
+    .filter(function(p) { return p[1].status === 'unfiled'; })
+    .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
+  var manualList = Object.entries(manual)
+    .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
+  var html = '';
+  html += '<div class="con-top">';
+  html += '<div style="font-size:15px;font-weight:700"><strong style="color:var(--red)">' + unfiled.length + '</strong> unfiled waiting</div>';
+  html += '</div>';
+  if (!unfiled.length) {
+    html += '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:15px">All caught up.</div>';
+  } else {
+    html += '<div class="con-section-head">Unfiled</div>';
+    unfiled.forEach(function(pair) {
+      var id = pair[0];
+      var e = pair[1];
+      html += '<div class="con-card">';
+      html += '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">';
+      html += '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>';
+      html += '<span style="font-size:15px;font-weight:700">' + esc(e.whatCameUp) + '</span>';
+      html += '</div>';
+      html += '<div style="font-size:14px;color:var(--gray2);line-height:1.5;white-space:pre-wrap;margin-bottom:6px">' + esc(e.whatLearned) + '</div>';
+      html += '<div style="font-size:12px;color:var(--muted)">';
+      if (e.source) html += 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ';
+      html += fmtDate(e.createdAt);
+      html += '</div>';
+      html += '<div class="con-actions">';
+      html += '<button class="btn btn-sm btn-green" onclick="openFileModal(\'' + id + '\')">File to Manual</button>';
+      html += '<button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteEntry(\'' + id + '\')">Delete</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+  if (manualList.length) {
+    html += '<div class="con-section-head" style="margin-top:32px">Manual (' + manualList.length + ')</div>';
+    manualList.forEach(function(pair) {
+      var mid = pair[0];
+      var m = pair[1];
+      html += '<div class="con-card">';
+      html += '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:4px">';
+      html += '<span class="cat-tag ' + esc(m.category) + '">' + esc(catLabel(m.category)) + '</span>';
+      html += '<span style="font-size:15px;font-weight:700">' + esc(m.title) + '</span>';
+      html += '</div>';
+      if (m.section && m.section !== 'General') {
+        html += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">' + esc(m.section) + '</div>';
+      }
+      html += '<div class="con-actions">';
+      html += '<button class="btn btn-sm" onclick="openManualEdit(\'' + mid + '\')">Edit</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+  body.innerHTML = html;
+}
+
+/* ---- FILE TO MANUAL ---- */
+
+function openFileModal(id) {
+  var e = entries[id];
+  if (!e) return;
+  document.getElementById('modal-file-raw').innerHTML =
+    '<strong>What came up:</strong> ' + esc(e.whatCameUp) +
+    '<br><strong>What they said:</strong> ' + esc(e.whatLearned) +
+    (e.source ? '<br><strong>Source:</strong> ' + esc(e.source) : '');
+  document.getElementById('mf-section').value = '';
+  document.getElementById('mf-title').value = e.whatCameUp || '';
+  document.getElementById('mf-body').value = e.whatLearned || '';
+  document.getElementById('mf-sources').value = e.source || '';
+  openModal('modal-file');
+  fileEntryId = id; // set AFTER openModal — closeModal() inside it resets this to null
+}
+
+function doFile() {
+  if (!fileEntryId) return;
+  var e = entries[fileEntryId];
+  if (!e) return;
+  var section = document.getElementById('mf-section').value.trim() || 'General';
+  var title = document.getElementById('mf-title').value.trim();
+  var body = document.getElementById('mf-body').value.trim();
+  var sourcesRaw = document.getElementById('mf-sources').value.trim();
+  if (!title) { toast('Need a title'); document.getElementById('mf-title').focus(); return; }
+  if (!body) { toast('Need a body'); document.getElementById('mf-body').focus(); return; }
+  var sources = sourcesRaw
+    ? sourcesRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
+    : [];
+  var manEntry = {
+    createdAt: Date.now(),
+    category: e.category,
+    section: section,
+    title: title,
+    cleanBody: body,
+    sources: sources,
+    entryIds: [fileEntryId]
+  };
+  var eid = fileEntryId;
+  db.ref(DB_MAN).push(manEntry, function(err) {
+    if (err) { toast('Save failed'); return; }
+    setTimeout(function() {
+      db.ref(DB_ENT + '/' + eid).update({ status: 'filed', manualSection: section });
+    }, 0);
+    closeModal();
+    toast('Filed.');
+    if (curTab === 'consolidate') renderConsolidate();
+  });
+}
+
+/* ---- MANUAL EDIT ---- */
+
+function openManualEdit(id) {
+  var m = manual[id];
+  if (!m) return;
+  document.getElementById('me-cat').value = m.category || 'advice';
+  document.getElementById('me-section').value = m.section || '';
+  document.getElementById('me-title').value = m.title || '';
+  document.getElementById('me-body').value = m.cleanBody || '';
+  document.getElementById('me-sources').value = m.sources ? m.sources.join(', ') : '';
+  openModal('modal-manual-edit');
+  editManualId = id; // set AFTER openModal — closeModal() inside it resets this to null
+}
+
+function saveManualEdit() {
+  if (!editManualId) return;
+  var sourcesRaw = document.getElementById('me-sources').value.trim();
+  var upd = {
+    category: document.getElementById('me-cat').value,
+    section: document.getElementById('me-section').value.trim() || 'General',
+    title: document.getElementById('me-title').value.trim(),
+    cleanBody: document.getElementById('me-body').value.trim(),
+    sources: sourcesRaw
+      ? sourcesRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
+      : []
+  };
+  if (!upd.title || !upd.cleanBody) { toast('Title and body are required'); return; }
+  db.ref(DB_MAN + '/' + editManualId).update(upd, function(err) {
+    if (err) { toast('Save failed'); return; }
+    closeModal();
+    toast('Saved.');
+    if (curTab === 'manual') renderManual();
+    if (curTab === 'consolidate') renderConsolidate();
+  });
+}
+
+function deleteManualEntry() {
+  if (!editManualId || !isAdmin) return;
+  if (!confirm('Delete this manual entry? Cannot undo.')) return;
+  var id = editManualId;
+  db.ref(DB_MAN + '/' + id).remove(function(err) {
+    if (err) { toast('Delete failed'); return; }
+    closeModal();
+    toast('Deleted.');
+    if (curTab === 'manual') renderManual();
+    if (curTab === 'consolidate') renderConsolidate();
+  });
+}
+
+/* ---- FIREBASE ---- */
+
+function initFB() {
+  var app = firebase.initializeApp(FB_BAKED);
+  db = firebase.database(app);
+
+  db.ref('.info/connected').on('value', function(snap) {
+    syncPill(snap.val() ? 'ok' : 'warn');
+  });
+
+  db.ref(DB_ENT).on('value', function(snap) {
+    entries = {};
+    if (snap.val()) {
+      snap.forEach(function(c) {
+        if (c.val()) entries[c.key] = c.val();
+      });
+    }
+    updatePileBadge();
+    if (curTab === 'pile') renderPile();
+    if (curTab === 'consolidate' && isAdmin) renderConsolidate();
+  }, function() { syncPill('err'); });
+
+  db.ref(DB_MAN).on('value', function(snap) {
+    manual = {};
+    if (snap.val()) {
+      snap.forEach(function(c) {
+        if (c.val()) manual[c.key] = c.val();
+      });
+    }
+    if (curTab === 'manual') renderManual();
+    if (curTab === 'consolidate' && isAdmin) renderConsolidate();
+  }, function() { syncPill('err'); });
+}
+
+initFB();
+</script>
+</body>
+</html>
