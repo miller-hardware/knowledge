@@ -1,14 +1,15 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<link id="fav-link" rel="icon" href="">
+<link id="touch-link" rel="apple-touch-icon" href="">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --red:#CC0000;--red-dk:#a30000;
   --green:#2a5c1a;--green-dk:#1e4512;
-  --amber:#c47c00;
-  --blue:#1a3c5c;
+  --amber:#c47c00;--blue:#1a3c5c;
   --dark:#1a1a1a;--gray2:#555;--muted:#888;
   --silver:#e0e0e0;--off:#f5f2ee;--white:#ffffff;
 }
@@ -16,7 +17,6 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 .app{display:flex;flex-direction:column;min-height:100vh}
 .hidden{display:none!important}
 
-/* TOPBAR */
 .topbar{background:var(--dark);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
 .topbar-brand{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;color:#fff;letter-spacing:.02em}
 .topbar-brand span{color:var(--red)}
@@ -27,116 +27,114 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 .sync-pill.err{background:#5a1b1b;color:#f5a0a0}
 .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .dot.g{background:#7ec94a}.dot.a{background:#f5a623}.dot.r{background:#e24b4a}
+.who-pill{font-size:12px;padding:4px 9px;border-radius:3px;background:#333;color:#ccc;font-weight:600;cursor:pointer;border:none;font-family:'Barlow',sans-serif}
+.who-pill:hover{background:#444}
 .btn-admin-toggle{background:transparent;border:1.5px solid #555;color:#bbb;font-size:12px;font-weight:700;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:.04em}
 .btn-admin-toggle.on{border-color:var(--amber);color:var(--amber)}
 
-/* NAVBAR */
 .navbar{background:var(--white);border-bottom:3px solid var(--red);display:flex;align-items:center;padding:0 14px;min-height:52px}
 .tabs{display:flex;gap:2px;height:52px;overflow-x:auto}
 .tab{display:flex;align-items:center;padding:0 12px;font-size:15px;font-weight:600;cursor:pointer;color:var(--gray2);border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--dark)}
 .tab.active{color:var(--red);border-bottom-color:var(--red)}
-.tab-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 5px;margin-left:4px}
 
-/* VIEWS */
 .view{padding:16px 14px;max-width:720px;margin:0 auto;width:100%}
 
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:4px;border:1.5px solid var(--silver);background:var(--white);font-size:14px;font-weight:600;cursor:pointer;color:var(--dark);font-family:'Barlow',sans-serif}
 .btn:hover{background:var(--off)}
 .btn-red{background:var(--red);color:#fff;border-color:var(--red)}
-.btn-red:hover{background:var(--red-dk);background:var(--red-dk)}
+.btn-red:hover{background:var(--red-dk)}
 .btn-green{background:var(--green);color:#fff;border-color:var(--green)}
 .btn-green:hover{background:var(--green-dk)}
 .btn-sm{font-size:13px;padding:5px 11px}
 .btn-xs{font-size:12px;padding:4px 9px}
 .btn-ghost{background:transparent;border-color:transparent;color:var(--gray2)}
 .btn-ghost:hover{background:var(--off)}
-.btn-filt{font-size:13px;padding:5px 11px;border-color:var(--silver)}
-.btn-filt.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+.btn-back{background:transparent;border:none;color:var(--gray2);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0;margin-bottom:10px;font-family:'Barlow',sans-serif}
+.btn-back:hover{color:var(--dark)}
 
-/* FORMS */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--gray2);margin-bottom:5px}
 .field .hint{font-size:12px;color:var(--muted);margin-top:3px;font-style:italic}
 .field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--silver);border-radius:4px;font-size:15px;font-family:'Barlow',sans-serif;color:var(--dark);background:var(--white);outline:none}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--dark)}
-.field textarea{resize:vertical;min-height:90px}
+.field textarea{resize:vertical;min-height:80px}
 
-/* CATEGORY PILLS */
-.cat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.cat-pill{padding:7px 18px;border-radius:20px;border:2px solid var(--silver);background:var(--white);font-size:14px;font-weight:700;cursor:pointer;color:var(--gray2);font-family:'Barlow',sans-serif}
-.cat-pill:hover{border-color:var(--dark)}
-.cat-pill.advice.sel{background:var(--blue);border-color:var(--blue);color:#fff}
-.cat-pill.technical.sel{background:var(--green);border-color:var(--green);color:#fff}
-.cat-pill.customers.sel{background:var(--amber);border-color:var(--amber);color:#fff}
+/* BOARD */
+.board-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.board-top h1{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;letter-spacing:.02em}
 
-/* CAPTURE CARD */
-.capture-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:20px;margin-top:4px}
-.capture-footer{font-size:13px;color:var(--muted);text-align:center;margin-top:16px;font-style:italic}
+.subj-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.subj-card:hover{border-color:#bbb}
+.subj-title{font-size:16px;font-weight:700;color:var(--dark)}
+.subj-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.subj-count{background:var(--off);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gray2);flex-shrink:0}
 
-/* ENTRY CARDS */
-.entry-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px;cursor:pointer}
-.entry-card:hover{border-color:#bbb}
-.entry-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
-.cat-tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px;flex-shrink:0}
-.cat-tag.advice{background:#e4eef8;color:var(--blue)}
-.cat-tag.technical{background:#eaf4e4;color:var(--green)}
-.cat-tag.customers{background:#fdf3e0;color:var(--amber)}
-.status-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;margin-left:auto}
-.status-tag.unfiled{background:#f0f0f0;color:#888}
-.status-tag.filed{background:#eaf4e4;color:var(--green)}
-.entry-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:4px}
-.entry-body{font-size:14px;color:var(--gray2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.entry-meta{font-size:12px;color:var(--muted);margin-top:6px}
+.note-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px;cursor:pointer}
+.note-card:hover{border-color:#bbb}
+.note-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.status-pill{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:10px;flex-shrink:0}
+.status-pill.open{background:#fdf3e0;color:var(--amber)}
+.status-pill.fixed{background:#eaf4e4;color:var(--green)}
+.status-pill.sent{background:#e4eef8;color:var(--blue)}
+.note-title{font-size:16px;font-weight:700;color:var(--dark)}
+.note-snip{font-size:14px;color:var(--gray2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px}
+.note-meta{font-size:12px;color:var(--muted)}
 
-/* PILE HEADER */
-.pile-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.pile-counter{font-size:14px;font-weight:600;color:var(--gray2)}
-.pile-counter strong{color:var(--red)}
-.pile-filters{display:flex;gap:6px}
+/* THREAD */
+.thread-note{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:18px;margin-bottom:16px}
+.thread-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px}
+.thread-body{font-size:15px;line-height:1.6;color:var(--dark);white-space:pre-wrap;margin-bottom:12px}
+.thread-meta{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status-pills{display:flex;gap:6px;margin-top:12px}
+.status-opt{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:10px;border:1.5px solid var(--silver);background:var(--white);cursor:pointer;color:var(--gray2);font-family:'Barlow',sans-serif}
+.status-opt.open.sel{background:#fdf3e0;border-color:var(--amber);color:var(--amber)}
+.status-opt.fixed.sel{background:#eaf4e4;border-color:var(--green);color:var(--green)}
+.status-opt.sent.sel{background:#e4eef8;border-color:var(--blue);color:var(--blue)}
 
-/* MANUAL */
-.manual-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.manual-cat-head{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--dark);letter-spacing:.02em;margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--silver);text-transform:uppercase}
-.manual-sec-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
-.manual-entry{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:16px;margin-bottom:10px}
-.manual-entry-title{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:8px}
-.manual-entry-body{font-size:14px;color:var(--gray2);line-height:1.6;white-space:pre-wrap}
-.manual-entry-foot{font-size:12px;color:var(--muted);margin-top:8px}
-.manual-empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.reply-composer{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:16px}
+.replies-head{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.reply{border-left:3px solid var(--silver);padding:8px 0 8px 12px;margin-bottom:8px}
+.reply-body{font-size:14px;line-height:1.5;color:var(--dark);white-space:pre-wrap;margin-bottom:4px}
+.reply-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.reply-link{background:none;border:none;color:var(--gray2);font-size:12px;font-weight:700;cursor:pointer;padding:0;font-family:'Barlow',sans-serif}
+.reply-link:hover{color:var(--red)}
+.reply-children{margin-left:14px}
+.mini-composer{margin-top:8px;display:none}
+.mini-composer.show{display:block}
+.mini-composer textarea{width:100%;padding:8px 10px;border:1.5px solid var(--silver);border-radius:4px;font-size:14px;font-family:'Barlow',sans-serif;resize:vertical;min-height:60px}
+.mini-composer-actions{display:flex;gap:6px;margin-top:6px}
 
-/* CONSOLIDATION */
-.con-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.con-section-head{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
-.con-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px}
-.con-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+/* EXPORT */
+.export-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:18px;margin-bottom:16px}
+.export-card h2{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;margin-bottom:10px}
+.radio-row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.radio-row label{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer}
+.admin-danger{border-top:1px dashed var(--silver);margin-top:16px;padding-top:16px}
+.admin-danger p{font-size:13px;color:var(--muted);margin-bottom:10px}
 
-/* MODALS */
+/* INSTALL */
+.install-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 10px 8px}
+.install-icon{width:96px;height:96px;border-radius:20px;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.install-hero h2{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;margin:12px 0 4px}
+.install-hero p{font-size:14px;color:var(--gray2);max-width:340px}
+.install-steps{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:18px;margin-top:16px}
+.install-steps h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--gray2);margin-bottom:10px}
+.install-steps ol{padding-left:20px;margin-bottom:6px}
+.install-steps li{font-size:14px;line-height:1.7;color:var(--dark)}
+.install-steps li b{color:var(--red)}
+
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100}
-.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--white);border-radius:6px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;z-index:101;padding:22px}
-.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;margin-bottom:18px;color:var(--dark)}
-.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
-.modal-raw{background:var(--off);border-radius:4px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--gray2);line-height:1.6}
-.modal-raw strong{color:var(--dark);display:block;margin-bottom:2px}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--white);border-radius:6px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;z-index:101;padding:22px}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;margin-bottom:16px;color:var(--dark)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
 
-/* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 20px;border-radius:4px;font-size:14px;font-weight:600;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 
-/* PRINT */
-@media print{
-  .topbar,.navbar,.modal-overlay,.toast,.con-actions,.btn-xs{display:none!important}
-  .view{max-width:100%;padding:0}
-  .manual-entry{border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
-}
-
 @media(max-width:540px){
   .view{padding:12px 10px}
-  .capture-card{padding:16px}
   .modal{padding:18px 14px;width:95%}
-  .cat-pills{gap:6px}
-  .cat-pill{padding:6px 13px;font-size:13px}
 }
 </style>
 
@@ -144,79 +142,84 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 <div class="app">
 
 <div class="topbar">
-  <div class="topbar-brand"><span>Miller</span> Generations</div>
+  <div class="topbar-brand"><span>Miller</span> Notes</div>
   <div class="topbar-right">
     <div id="sync-pill" class="sync-pill warn"><div class="dot a"></div>connecting</div>
+    <button id="who-pill" class="who-pill" onclick="openNameModal(true)">posting as ...</button>
     <button id="btn-admin-toggle" class="btn-admin-toggle" onclick="toggleAdmin()">Admin</button>
   </div>
 </div>
 
 <div class="navbar">
   <div class="tabs">
-    <div id="tbl-catch" class="tab active" onclick="showTab('catch')">Catch One</div>
-    <div id="tbl-pile" class="tab" onclick="showTab('pile')">The Pile <span id="pile-badge" class="tab-badge hidden">0</span></div>
-    <div id="tbl-manual" class="tab" onclick="showTab('manual')">The Manual</div>
-    <div id="tbl-consolidate" class="tab hidden" onclick="showTab('consolidate')">Consolidate</div>
+    <div id="tbl-board" class="tab active" onclick="showTab('board')">Board</div>
+    <div id="tbl-export" class="tab" onclick="showTab('export')">Export</div>
+    <div id="tbl-install" class="tab" onclick="showTab('install')">Install</div>
   </div>
 </div>
 
-<!-- CATCH ONE -->
-<div id="view-catch" class="view">
-  <div class="capture-card">
-    <div class="cat-pills">
-      <button class="cat-pill advice sel" onclick="pickCategory('advice')">Advice</button>
-      <button class="cat-pill technical" onclick="pickCategory('technical')">Technical</button>
-      <button class="cat-pill customers" onclick="pickCategory('customers')">Customers</button>
+<!-- BOARD -->
+<div id="view-board" class="view">
+  <div id="board-body"></div>
+</div>
+
+<!-- EXPORT -->
+<div id="view-export" class="view hidden">
+  <div class="export-card">
+    <h2>Export for Rundoo</h2>
+    <div class="radio-row">
+      <label><input type="radio" name="exp-scope" value="all" checked> All notes</label>
+      <label><input type="radio" name="exp-scope" value="open"> Open only</label>
     </div>
-    <div class="field">
-      <label>Caught one?</label>
-      <input type="text" id="c-came-up" placeholder="What came up?" maxlength="200" />
+    <button class="btn btn-red" onclick="exportReport()">Generate Report</button>
+    <div class="hint" style="margin-top:8px">Opens a printable page &mdash; use your browser's Print &rarr; Save as PDF.</div>
+    <div id="admin-danger" class="admin-danger hidden">
+      <p><strong>Admin tools.</strong> This permanently wipes every subject, note, and reply. Use after you've sent the report to Rundoo.</p>
+      <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button>
     </div>
-    <div class="field">
-      <label>What'd you learn — your words</label>
-      <textarea id="c-learned" placeholder="Write it out..." rows="4"></textarea>
-      <div class="hint">Tell it like you'd tell the next new guy.</div>
-    </div>
-    <div class="field">
-      <label>Who told you?</label>
-      <input type="text" id="c-source" placeholder="Name of the person you learned it from" maxlength="100" />
-    </div>
-    <button class="btn btn-red" style="width:100%;justify-content:center;font-size:16px;padding:12px" onclick="submitEntry()">Drop it in the pile</button>
-    <div class="capture-footer">Goes to the pile. Someone files it into the manual later.</div>
   </div>
 </div>
 
-<!-- THE PILE -->
-<div id="view-pile" class="view hidden">
-  <div class="pile-top">
-    <div id="pile-counter" class="pile-counter">loading...</div>
-    <div class="pile-filters">
-      <button class="btn-filt btn on" id="pf-all" onclick="setPileFilter('all')">All</button>
-      <button class="btn-filt btn" id="pf-unfiled" onclick="setPileFilter('unfiled')">Unfiled</button>
-      <button class="btn-filt btn" id="pf-filed" onclick="setPileFilter('filed')">Filed</button>
-    </div>
+<!-- INSTALL -->
+<div id="view-install" class="view hidden">
+  <div class="install-hero">
+    <img id="install-icon-img" class="install-icon" src="" alt="Miller Notes icon">
+    <h2>Add Miller Notes to your phone</h2>
+    <p>Get it on your home screen so it opens full-screen, like a real app.</p>
   </div>
-  <div id="pile-list"></div>
-</div>
-
-<!-- THE MANUAL -->
-<div id="view-manual" class="view hidden">
-  <div class="manual-top">
-    <div id="manual-count" style="font-size:14px;color:var(--muted)"></div>
-    <button class="btn btn-sm" onclick="exportManual()">Print / Export</button>
+  <div class="install-steps">
+    <h3>iPhone (Safari)</h3>
+    <ol>
+      <li>Tap the <b>Share</b> button (square with an arrow) at the bottom of the screen.</li>
+      <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+      <li>Tap <b>Add</b> in the top right.</li>
+    </ol>
   </div>
-  <div id="manual-body"></div>
-</div>
-
-<!-- CONSOLIDATE -->
-<div id="view-consolidate" class="view hidden">
-  <div id="consolidate-body"></div>
+  <div class="install-steps">
+    <h3>Android (Chrome)</h3>
+    <ol>
+      <li>Tap the <b>&#8942;</b> menu in the top right corner.</li>
+      <li>Tap <b>Add to Home screen</b> (or <b>Install app</b>).</li>
+      <li>Tap <b>Add</b> / <b>Install</b> to confirm.</li>
+    </ol>
+  </div>
 </div>
 
 </div><!-- .app -->
 
 <!-- OVERLAYS -->
 <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()"></div>
+
+<div id="modal-name" class="modal hidden">
+  <div class="modal-title">Who's posting?</div>
+  <div class="field">
+    <label>Your Name</label>
+    <input type="text" id="name-input" placeholder="First name is fine" maxlength="40" onkeydown="if(event.key==='Enter')saveName()" />
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-red" onclick="saveName()">Save</button>
+  </div>
+</div>
 
 <div id="modal-admin" class="modal hidden">
   <div class="modal-title">Admin Access</div>
@@ -231,72 +234,31 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
   </div>
 </div>
 
-<div id="modal-entry" class="modal hidden">
-  <div id="modal-entry-body"></div>
-  <div class="modal-footer" id="modal-entry-footer">
-    <button class="btn" onclick="closeModal()">Close</button>
-  </div>
-</div>
-
-<div id="modal-file" class="modal hidden">
-  <div class="modal-title">File to Manual</div>
-  <div id="modal-file-raw" class="modal-raw"></div>
+<div id="modal-subject" class="modal hidden">
+  <div class="modal-title">New Subject</div>
   <div class="field">
-    <label>Section</label>
-    <input type="text" id="mf-section" placeholder="e.g. Saw Shop, Accounts, Hiring…" maxlength="100" />
-    <div class="hint">Where this goes in the manual — be consistent with existing sections.</div>
-  </div>
-  <div class="field">
-    <label>Title</label>
-    <input type="text" id="mf-title" maxlength="200" />
-  </div>
-  <div class="field">
-    <label>Clean Body</label>
-    <textarea id="mf-body" rows="6"></textarea>
-    <div class="hint">Plain language. Write it for the next new guy.</div>
-  </div>
-  <div class="field">
-    <label>Credit</label>
-    <input type="text" id="mf-sources" maxlength="200" />
-    <div class="hint">Names separated by commas.</div>
+    <label>Subject Heading</label>
+    <input type="text" id="subj-title-input" placeholder="e.g. Checkout / Register" maxlength="80" />
   </div>
   <div class="modal-footer">
     <button class="btn" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-green" onclick="doFile()">File it</button>
+    <button class="btn btn-red" onclick="doCreateSubject()">Create</button>
   </div>
 </div>
 
-<div id="modal-manual-edit" class="modal hidden">
-  <div class="modal-title">Edit Manual Entry</div>
-  <div class="field">
-    <label>Category</label>
-    <select id="me-cat">
-      <option value="advice">Advice</option>
-      <option value="technical">Technical</option>
-      <option value="customers">Customers</option>
-    </select>
-  </div>
-  <div class="field">
-    <label>Section</label>
-    <input type="text" id="me-section" maxlength="100" />
-  </div>
+<div id="modal-note" class="modal hidden">
+  <div class="modal-title">New Note</div>
   <div class="field">
     <label>Title</label>
-    <input type="text" id="me-title" maxlength="200" />
+    <input type="text" id="note-title-input" placeholder="What's the issue?" maxlength="150" />
   </div>
   <div class="field">
-    <label>Body</label>
-    <textarea id="me-body" rows="8"></textarea>
-  </div>
-  <div class="field">
-    <label>Credit</label>
-    <input type="text" id="me-sources" maxlength="200" />
-    <div class="hint">Comma-separated names.</div>
+    <label>Details</label>
+    <textarea id="note-body-input" rows="6" placeholder="What happened, what you expected, steps to reproduce..."></textarea>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-ghost" style="margin-right:auto;color:var(--red)" onclick="deleteManualEntry()">Delete</button>
     <button class="btn" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-green" onclick="saveManualEdit()">Save</button>
+    <button class="btn btn-red" onclick="doCreateNote()">Post</button>
   </div>
 </div>
 
@@ -314,21 +276,25 @@ var FB_BAKED = {
 };
 
 var ADMIN_CODE = "8704494255";
-var DB_ENT = "kb_entries";
-var DB_MAN = "kb_manual";
+var DB_SUBJ = "mn_subjects";
+var DB_NOTE = "mn_notes";
+var DB_REPLY = "mn_replies";
 
 var db;
 var isAdmin = false;
-var curTab = "catch";
-var entries = {};
-var manual = {};
-var pileFilter = "all";
-var pickCat = "advice";
-var fileEntryId = null;
-var editManualId = null;
+var myName = "";
+var curTab = "board";
+var screen = "subjects"; // subjects | notes | thread
+var curSubjectId = null;
+var curNoteId = null;
+var replyOpenFor = null; // id of reply/note currently showing its mini-composer
+
+var subjects = {};
+var notes = {};
+var replies = {};
 var toastTimer = null;
 
-/* ---- UTILITIES ---- */
+/* ---- UTIL ---- */
 
 function esc(s) {
   var d = document.createElement('div');
@@ -338,11 +304,8 @@ function esc(s) {
 
 function fmtDate(ts) {
   var d = new Date(ts);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function catLabel(c) {
-  return c === 'advice' ? 'Advice' : c === 'technical' ? 'Technical' : 'Customers';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 function toast(msg, dur) {
@@ -363,12 +326,10 @@ function syncPill(state) {
 }
 
 function closeModal() {
-  ['modal-admin', 'modal-entry', 'modal-file', 'modal-manual-edit'].forEach(function(id) {
+  ['modal-name', 'modal-admin', 'modal-subject', 'modal-note'].forEach(function(id) {
     document.getElementById(id).classList.add('hidden');
   });
   document.getElementById('modal-overlay').classList.add('hidden');
-  fileEntryId = null;
-  editManualId = null;
 }
 
 function openModal(id) {
@@ -379,13 +340,32 @@ function openModal(id) {
 
 function showTab(t) {
   curTab = t;
-  ['catch', 'pile', 'manual', 'consolidate'].forEach(function(n) {
+  ['board', 'export', 'install'].forEach(function(n) {
     document.getElementById('view-' + n).classList.toggle('hidden', n !== t);
     document.getElementById('tbl-' + n).classList.toggle('active', n === t);
   });
-  if (t === 'pile') renderPile();
-  if (t === 'manual') renderManual();
-  if (t === 'consolidate') renderConsolidate();
+  if (t === 'board') renderBoard();
+  if (t === 'export') renderExport();
+}
+
+/* ---- NAME / IDENTITY ---- */
+
+function openNameModal(allowCancel) {
+  document.getElementById('name-input').value = myName || '';
+  openModal('modal-name');
+  if (!allowCancel) {
+    // first-time: hide the overlay's own close-on-click-outside by leaving as-is; fine either way
+  }
+  setTimeout(function() { document.getElementById('name-input').focus(); }, 80);
+}
+
+function saveName() {
+  var v = document.getElementById('name-input').value.trim();
+  if (!v) { toast('Enter a name'); return; }
+  myName = v;
+  localStorage.setItem('mn_username', v);
+  document.getElementById('who-pill').textContent = 'posting as ' + v;
+  closeModal();
 }
 
 /* ---- ADMIN ---- */
@@ -396,11 +376,9 @@ function toggleAdmin() {
     var tog = document.getElementById('btn-admin-toggle');
     tog.classList.remove('on');
     tog.textContent = 'Admin';
-    document.getElementById('tbl-consolidate').classList.add('hidden');
-    if (curTab === 'consolidate') showTab('catch');
-    if (curTab === 'pile') renderPile();
-    if (curTab === 'manual') renderManual();
     toast('Admin off');
+    if (curTab === 'board') renderBoard();
+    if (curTab === 'export') renderExport();
   } else {
     document.getElementById('admin-code-input').value = '';
     document.getElementById('admin-err').classList.add('hidden');
@@ -418,8 +396,9 @@ function doAdminLogin() {
     var tog = document.getElementById('btn-admin-toggle');
     tog.classList.add('on');
     tog.textContent = 'Admin ✓';
-    document.getElementById('tbl-consolidate').classList.remove('hidden');
     toast('Admin unlocked');
+    if (curTab === 'board') renderBoard();
+    if (curTab === 'export') renderExport();
   } else {
     document.getElementById('admin-err').classList.remove('hidden');
     document.getElementById('admin-code-input').value = '';
@@ -427,415 +406,423 @@ function doAdminLogin() {
   }
 }
 
-/* ---- CATEGORY PICKER ---- */
-
-function pickCategory(cat) {
-  pickCat = cat;
-  document.querySelectorAll('.cat-pill').forEach(function(el) {
-    el.classList.remove('sel');
-  });
-  var pill = document.querySelector('.cat-pill.' + cat);
-  if (pill) pill.classList.add('sel');
+function canDelete(authorName) {
+  if (isAdmin) return true;
+  if (!myName || !authorName) return false;
+  return myName.trim().toLowerCase() === authorName.trim().toLowerCase();
 }
 
-/* ---- CAPTURE ---- */
+/* ---- NAV ---- */
 
-function submitEntry() {
-  var cameUp = document.getElementById('c-came-up').value.trim();
-  var learned = document.getElementById('c-learned').value.trim();
-  var source = document.getElementById('c-source').value.trim();
-  if (!cameUp) {
-    toast('What came up?');
-    document.getElementById('c-came-up').focus();
-    return;
-  }
-  if (!learned) {
-    toast("What'd you learn?");
-    document.getElementById('c-learned').focus();
-    return;
-  }
-  var entry = {
-    createdAt: Date.now(),
-    category: pickCat,
-    whatCameUp: cameUp,
-    whatLearned: learned,
-    source: source,
-    loggedBy: '',
-    status: 'unfiled',
-    manualSection: null,
-    photoUrl: null
-  };
-  db.ref(DB_ENT).push(entry, function(err) {
-    if (err) { toast('Save failed — check connection'); return; }
-    document.getElementById('c-came-up').value = '';
-    document.getElementById('c-learned').value = '';
-    document.getElementById('c-source').value = '';
-    toast('Dropped in the pile.');
-  });
+function goSubjects() {
+  screen = 'subjects';
+  curSubjectId = null;
+  curNoteId = null;
+  renderBoard();
 }
 
-/* ---- PILE ---- */
-
-function setPileFilter(f) {
-  pileFilter = f;
-  ['all', 'unfiled', 'filed'].forEach(function(n) {
-    document.getElementById('pf-' + n).classList.toggle('on', n === f);
-  });
-  renderPile();
+function goNotes(subjectId) {
+  screen = 'notes';
+  curSubjectId = subjectId;
+  curNoteId = null;
+  renderBoard();
 }
 
-function updatePileBadge() {
-  var unfiled = Object.values(entries).filter(function(e) { return e.status === 'unfiled'; }).length;
-  var badge = document.getElementById('pile-badge');
-  if (unfiled > 0) {
-    badge.textContent = unfiled;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+function goThread(noteId) {
+  screen = 'thread';
+  curNoteId = noteId;
+  replyOpenFor = null;
+  renderBoard();
 }
 
-function renderPile() {
-  var list = document.getElementById('pile-list');
-  var all = Object.entries(entries).sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
-  var filtered = all.filter(function(p) {
-    if (pileFilter === 'all') return true;
-    return p[1].status === pileFilter;
-  });
-  var unfiledCount = all.filter(function(p) { return p[1].status === 'unfiled'; }).length;
-  var filedCount = all.filter(function(p) { return p[1].status === 'filed'; }).length;
-  document.getElementById('pile-counter').innerHTML =
-    '<strong>' + unfiledCount + '</strong> unfiled &nbsp;/&nbsp; ' + filedCount + ' filed';
-  if (filtered.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:15px">Nothing here yet.</div>';
-    return;
-  }
-  var html = '';
-  filtered.forEach(function(pair) {
-    var id = pair[0];
-    var e = pair[1];
-    html += '<div class="entry-card" onclick="openEntry(\'' + id + '\')">';
-    html += '<div class="entry-header">';
-    html += '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>';
-    html += '<span class="status-tag ' + esc(e.status) + '">' + esc(e.status) + '</span>';
-    html += '</div>';
-    html += '<div class="entry-title">' + esc(e.whatCameUp) + '</div>';
-    html += '<div class="entry-body">' + esc(e.whatLearned) + '</div>';
-    html += '<div class="entry-meta">';
-    if (e.source) html += 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ';
-    html += fmtDate(e.createdAt);
-    if (e.manualSection) html += ' &nbsp;&middot;&nbsp; filed: ' + esc(e.manualSection);
-    html += '</div>';
-    html += '</div>';
-  });
-  list.innerHTML = html;
+/* ---- SUBJECTS ---- */
+
+function openSubjectModal() {
+  document.getElementById('subj-title-input').value = '';
+  openModal('modal-subject');
+  setTimeout(function() { document.getElementById('subj-title-input').focus(); }, 80);
 }
 
-function openEntry(id) {
-  var e = entries[id];
-  if (!e) return;
-  var bodyEl = document.getElementById('modal-entry-body');
-  bodyEl.innerHTML =
-    '<div class="modal-title" style="margin-bottom:8px">' + esc(e.whatCameUp) + '</div>' +
-    '<div style="display:flex;gap:8px;margin-bottom:14px">' +
-    '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>' +
-    '<span class="status-tag ' + esc(e.status) + '">' + esc(e.status) + '</span>' +
-    '</div>' +
-    '<div style="font-size:15px;line-height:1.6;white-space:pre-wrap;margin-bottom:12px">' + esc(e.whatLearned) + '</div>' +
-    '<div style="font-size:13px;color:var(--muted)">' +
-    (e.source ? 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ' : '') +
-    fmtDate(e.createdAt) +
-    (e.manualSection ? ' &nbsp;&middot;&nbsp; filed: ' + esc(e.manualSection) : '') +
-    '</div>';
-  var footerEl = document.getElementById('modal-entry-footer');
-  if (isAdmin) {
-    footerEl.innerHTML =
-      '<button class="btn btn-ghost" style="margin-right:auto;color:var(--red)" onclick="deleteEntry(\'' + id + '\')">Delete</button>' +
-      (e.status === 'unfiled'
-        ? '<button class="btn" onclick="closeModal()">Close</button><button class="btn btn-green" onclick="closeModal();openFileModal(\'' + id + '\')">File to Manual</button>'
-        : '<button class="btn" onclick="closeModal()">Close</button>');
-  } else {
-    footerEl.innerHTML = '<button class="btn" onclick="closeModal()">Close</button>';
-  }
-  openModal('modal-entry');
-}
-
-function deleteEntry(id) {
-  if (!isAdmin) return;
-  if (!confirm('Delete this entry? Cannot undo.')) return;
-  db.ref(DB_ENT + '/' + id).remove(function(err) {
-    if (err) { toast('Delete failed'); return; }
+function doCreateSubject() {
+  var title = document.getElementById('subj-title-input').value.trim();
+  if (!title) { toast('Give it a heading'); return; }
+  if (!myName) { closeModal(); openNameModal(true); return; }
+  db.ref(DB_SUBJ).push({ title: title, createdAt: Date.now(), createdBy: myName }, function(err) {
+    if (err) { toast('Save failed'); return; }
     closeModal();
-    toast('Entry deleted');
+    toast('Subject created');
   });
 }
 
-/* ---- MANUAL ---- */
-
-function renderManual() {
-  var body = document.getElementById('manual-body');
-  var allM = Object.entries(manual);
-  var countEl = document.getElementById('manual-count');
-  countEl.textContent = allM.length === 0 ? '' : allM.length + (allM.length === 1 ? ' entry' : ' entries');
-  if (allM.length === 0) {
-    body.innerHTML = '<div class="manual-empty"><p style="font-size:15px;margin-bottom:8px">The manual is empty.</p><p style="font-size:13px">Entries show up here after consolidation.</p></div>';
-    return;
-  }
-  var cats = ['advice', 'technical', 'customers'];
-  var catLabels = { advice: 'Advice', technical: 'Technical', customers: 'Customers' };
-  var html = '';
-  cats.forEach(function(cat) {
-    var items = allM.filter(function(p) { return p[1].category === cat; });
-    if (!items.length) return;
-    html += '<div class="manual-cat-head">' + catLabels[cat] + '</div>';
-    var sections = {};
-    items.forEach(function(p) {
-      var sec = p[1].section || 'General';
-      if (!sections[sec]) sections[sec] = [];
-      sections[sec].push(p);
+function deleteSubject(id) {
+  if (!isAdmin) return;
+  if (!confirm('Delete this subject and everything under it? Cannot undo.')) return;
+  var noteIds = Object.keys(notes).filter(function(nid) { return notes[nid].subjectId === id; });
+  noteIds.forEach(function(nid) {
+    Object.keys(replies).forEach(function(rid) {
+      if (replies[rid].noteId === nid) db.ref(DB_REPLY + '/' + rid).remove();
     });
-    Object.keys(sections).sort().forEach(function(sec) {
-      if (sec !== 'General') {
-        html += '<div class="manual-sec-label">' + esc(sec) + '</div>';
+    db.ref(DB_NOTE + '/' + nid).remove();
+  });
+  db.ref(DB_SUBJ + '/' + id).remove(function(err) {
+    if (err) { toast('Delete failed'); return; }
+    toast('Subject deleted');
+    goSubjects();
+  });
+}
+
+/* ---- NOTES ---- */
+
+function openNoteModal() {
+  document.getElementById('note-title-input').value = '';
+  document.getElementById('note-body-input').value = '';
+  openModal('modal-note');
+  setTimeout(function() { document.getElementById('note-title-input').focus(); }, 80);
+}
+
+function doCreateNote() {
+  var title = document.getElementById('note-title-input').value.trim();
+  var body = document.getElementById('note-body-input').value.trim();
+  if (!title) { toast('Needs a title'); return; }
+  if (!myName) { closeModal(); openNameModal(true); return; }
+  db.ref(DB_NOTE).push({
+    subjectId: curSubjectId,
+    title: title,
+    body: body,
+    author: myName,
+    createdAt: Date.now(),
+    status: 'open'
+  }, function(err) {
+    if (err) { toast('Save failed'); return; }
+    closeModal();
+    toast('Posted');
+  });
+}
+
+function setNoteStatus(id, status) {
+  db.ref(DB_NOTE + '/' + id).update({ status: status });
+}
+
+function deleteNote(id) {
+  var n = notes[id];
+  if (!n || !canDelete(n.author)) return;
+  if (!confirm('Delete this note and its replies? Cannot undo.')) return;
+  Object.keys(replies).forEach(function(rid) {
+    if (replies[rid].noteId === id) db.ref(DB_REPLY + '/' + rid).remove();
+  });
+  db.ref(DB_NOTE + '/' + id).remove(function(err) {
+    if (err) { toast('Delete failed'); return; }
+    toast('Note deleted');
+    goNotes(curSubjectId);
+  });
+}
+
+/* ---- REPLIES ---- */
+
+function toggleReplyBox(key) {
+  replyOpenFor = (replyOpenFor === key) ? null : key;
+  renderBoard();
+}
+
+function submitReply(noteId, parentId) {
+  var key = parentId || noteId;
+  var ta = document.getElementById('rt-' + key);
+  if (!ta) return;
+  var body = ta.value.trim();
+  if (!body) { toast('Write something first'); return; }
+  if (!myName) { openNameModal(true); return; }
+  db.ref(DB_REPLY).push({
+    noteId: noteId,
+    parentId: parentId || null,
+    body: body,
+    author: myName,
+    createdAt: Date.now()
+  }, function(err) {
+    if (err) { toast('Save failed'); return; }
+    replyOpenFor = null;
+    toast('Reply posted');
+    // The optimistic on('value') listener may already have re-rendered with
+    // the composer still open (it fires before this server-ack callback), so
+    // force a fresh render now that replyOpenFor is cleared.
+    if (curTab === 'board' && screen === 'thread') renderBoard();
+  });
+}
+
+function deleteReply(id) {
+  var r = replies[id];
+  if (!r || !canDelete(r.author)) return;
+  if (!confirm('Delete this reply and any replies to it?')) return;
+  var toDelete = [id];
+  var changed = true;
+  while (changed) {
+    changed = false;
+    Object.keys(replies).forEach(function(rid) {
+      if (toDelete.indexOf(rid) === -1 && toDelete.indexOf(replies[rid].parentId) !== -1) {
+        toDelete.push(rid);
+        changed = true;
       }
-      var sorted = sections[sec].slice().sort(function(a, b) {
-        var ta = (a[1].title || '').toLowerCase();
-        var tb = (b[1].title || '').toLowerCase();
-        return ta < tb ? -1 : ta > tb ? 1 : 0;
-      });
-      sorted.forEach(function(p) {
-        var mid = p[0];
-        var m = p[1];
-        html += '<div class="manual-entry">';
-        html += '<div class="manual-entry-title">' + esc(m.title) + '</div>';
-        html += '<div class="manual-entry-body">' + esc(m.cleanBody) + '</div>';
-        html += '<div class="manual-entry-foot">';
-        if (m.sources && m.sources.length) html += 'per ' + esc(m.sources.join(', '));
-        if (m.createdAt) html += (m.sources && m.sources.length ? ' &nbsp;&middot;&nbsp; ' : '') + fmtDate(m.createdAt);
-        html += '</div>';
-        if (isAdmin) {
-          html += '<div style="margin-top:10px"><button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();openManualEdit(\'' + mid + '\')">Edit</button></div>';
-        }
-        html += '</div>';
-      });
     });
-  });
-  body.innerHTML = html;
+  }
+  toDelete.forEach(function(rid) { db.ref(DB_REPLY + '/' + rid).remove(); });
+  toast('Reply deleted');
 }
 
-function exportManual() {
-  var allM = Object.entries(manual);
-  if (!allM.length) { toast('The manual is empty.'); return; }
-  var cats = ['advice', 'technical', 'customers'];
-  var catLabels = { advice: 'ADVICE', technical: 'TECHNICAL', customers: 'CUSTOMERS' };
-  var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-    '<title>Miller Generations — The Manual</title>' +
-    '<style>body{font-family:Georgia,serif;font-size:14px;max-width:720px;margin:40px auto;color:#1a1a1a;line-height:1.6}' +
-    'h1{font-size:28px;font-weight:900;letter-spacing:.02em;margin-bottom:2px}' +
-    '.sub{font-size:13px;color:#888;margin-bottom:40px}' +
-    'h2{font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-top:3px solid #1a1a1a;padding-top:10px;margin:32px 0 10px}' +
-    'h3{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;margin:18px 0 6px}' +
-    '.entry{border-left:3px solid #ddd;padding:10px 14px;margin-bottom:14px;break-inside:avoid}' +
-    '.entry-title{font-weight:700;font-size:15px;margin-bottom:6px}' +
-    '.entry-body{white-space:pre-wrap;color:#333;font-size:14px}' +
-    '.entry-foot{font-size:12px;color:#999;margin-top:6px}' +
-    '@media print{body{margin:20px;font-size:12px}h1{font-size:22px}}</style></head><body>' +
-    '<h1>Miller Generations</h1>' +
-    '<div class="sub">The Manual &mdash; printed ' +
-    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
-    '</div>';
-  cats.forEach(function(cat) {
-    var items = allM.filter(function(p) { return p[1].category === cat; });
-    if (!items.length) return;
-    html += '<h2>' + catLabels[cat] + '</h2>';
-    var sections = {};
-    items.forEach(function(p) {
-      var sec = p[1].section || 'General';
-      if (!sections[sec]) sections[sec] = [];
-      sections[sec].push(p);
-    });
-    Object.keys(sections).sort().forEach(function(sec) {
-      if (sec !== 'General') html += '<h3>' + sec.replace(/</g, '&lt;') + '</h3>';
-      var sorted = sections[sec].slice().sort(function(a, b) {
-        var ta = (a[1].title || '').toLowerCase();
-        var tb = (b[1].title || '').toLowerCase();
-        return ta < tb ? -1 : ta > tb ? 1 : 0;
+/* ---- RENDER: BOARD ---- */
+
+function renderBoard() {
+  var el = document.getElementById('board-body');
+  if (screen === 'subjects') { el.innerHTML = renderSubjectsHtml(); return; }
+  if (screen === 'notes') { el.innerHTML = renderNotesHtml(); return; }
+  if (screen === 'thread') { el.innerHTML = renderThreadHtml(); return; }
+}
+
+function renderSubjectsHtml() {
+  var list = Object.entries(subjects).sort(function(a, b) {
+    return (a[1].title || '').localeCompare(b[1].title || '');
+  });
+  var html = '<div class="board-top"><h1>Subjects</h1><button class="btn btn-red btn-sm" onclick="openSubjectModal()">+ New Subject</button></div>';
+  if (!list.length) {
+    html += '<div style="text-align:center;padding:40px 0;color:var(--muted)">No subjects yet. Start one.</div>';
+    return html;
+  }
+  list.forEach(function(pair) {
+    var id = pair[0], s = pair[1];
+    var noteIds = Object.keys(notes).filter(function(nid) { return notes[nid].subjectId === id; });
+    var openCount = noteIds.filter(function(nid) { return notes[nid].status === 'open'; }).length;
+    var lastTs = noteIds.reduce(function(max, nid) { return Math.max(max, notes[nid].createdAt || 0); }, s.createdAt || 0);
+    html += '<div class="subj-card" onclick="goNotes(\'' + id + '\')">';
+    html += '<div><div class="subj-title">' + esc(s.title) + '</div>';
+    html += '<div class="subj-meta">' + noteIds.length + ' note' + (noteIds.length === 1 ? '' : 's') +
+      (openCount ? ' &middot; ' + openCount + ' open' : '') + ' &middot; last ' + fmtDate(lastTs) + '</div></div>';
+    html += '<div class="subj-count">' + noteIds.length + '</div>';
+    if (isAdmin) {
+      html += '</div>'; // close subj-card early replaced below actually keep structure simple
+    } else {
+      html += '</div>';
+    }
+  });
+  return html;
+}
+
+function renderNotesHtml() {
+  var s = subjects[curSubjectId];
+  if (!s) { screen = 'subjects'; return renderSubjectsHtml(); }
+  var html = '<button class="btn-back" onclick="goSubjects()">&larr; All Subjects</button>';
+  html += '<div class="board-top"><h1>' + esc(s.title) + '</h1><button class="btn btn-red btn-sm" onclick="openNoteModal()">+ New Note</button></div>';
+  if (isAdmin) {
+    html += '<div style="margin-bottom:12px"><button class="btn btn-xs btn-ghost" style="color:var(--red)" onclick="deleteSubject(\'' + curSubjectId + '\')">Delete this subject</button></div>';
+  }
+  var list = Object.entries(notes).filter(function(p) { return p[1].subjectId === curSubjectId; })
+    .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
+  if (!list.length) {
+    html += '<div style="text-align:center;padding:40px 0;color:var(--muted)">Nothing posted here yet.</div>';
+    return html;
+  }
+  list.forEach(function(pair) {
+    var id = pair[0], n = pair[1];
+    var replyCount = Object.keys(replies).filter(function(rid) { return replies[rid].noteId === id; }).length;
+    html += '<div class="note-card" onclick="goThread(\'' + id + '\')">';
+    html += '<div class="note-head"><span class="status-pill ' + n.status + '">' + statusLabel(n.status) + '</span></div>';
+    html += '<div class="note-title">' + esc(n.title) + '</div>';
+    if (n.body) html += '<div class="note-snip">' + esc(n.body) + '</div>';
+    html += '<div class="note-meta">' + esc(n.author) + ' &middot; ' + fmtDate(n.createdAt) + ' &middot; ' + replyCount + ' repl' + (replyCount === 1 ? 'y' : 'ies') + '</div>';
+    html += '</div>';
+  });
+  return html;
+}
+
+function statusLabel(s) {
+  return s === 'fixed' ? 'Fixed' : s === 'sent' ? 'Sent to Rundoo' : 'Open';
+}
+
+function renderThreadHtml() {
+  var n = notes[curNoteId];
+  if (!n) { screen = 'notes'; return renderNotesHtml(); }
+  var html = '<button class="btn-back" onclick="goNotes(\'' + n.subjectId + '\')">&larr; ' + esc((subjects[n.subjectId] || {}).title || 'Back') + '</button>';
+  html += '<div class="thread-note">';
+  html += '<div class="thread-title">' + esc(n.title) + '</div>';
+  if (n.body) html += '<div class="thread-body">' + esc(n.body) + '</div>';
+  html += '<div class="thread-meta"><span>' + esc(n.author) + '</span><span>&middot;</span><span>' + fmtDate(n.createdAt) + '</span></div>';
+  html += '<div class="status-pills">';
+  ['open', 'fixed', 'sent'].forEach(function(st) {
+    html += '<button class="status-opt ' + st + (n.status === st ? ' sel' : '') + '" onclick="setNoteStatus(\'' + curNoteId + '\',\'' + st + '\')">' + statusLabel(st) + '</button>';
+  });
+  html += '</div>';
+  if (canDelete(n.author)) {
+    html += '<div style="margin-top:12px"><button class="btn btn-xs btn-ghost" style="color:var(--red)" onclick="deleteNote(\'' + curNoteId + '\')">Delete note</button></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="reply-composer">';
+  html += '<div class="replies-head">Add a reply</div>';
+  html += '<textarea id="rt-' + curNoteId + '" rows="3" placeholder="Write a reply..." style="width:100%;padding:8px 10px;border:1.5px solid var(--silver);border-radius:4px;font-size:14px;font-family:\'Barlow\',sans-serif;resize:vertical"></textarea>';
+  html += '<div style="margin-top:8px"><button class="btn btn-red btn-sm" onclick="submitReply(\'' + curNoteId + '\',null)">Reply</button></div>';
+  html += '</div>';
+
+  var topLevel = Object.entries(replies).filter(function(p) { return p[1].noteId === curNoteId && !p[1].parentId; })
+    .sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
+  html += '<div class="replies-head">' + Object.keys(replies).filter(function(rid) { return replies[rid].noteId === curNoteId; }).length + ' repl' +
+    (Object.keys(replies).filter(function(rid) { return replies[rid].noteId === curNoteId; }).length === 1 ? 'y' : 'ies') + '</div>';
+  topLevel.forEach(function(pair) {
+    html += renderReplyHtml(pair[0], pair[1], 0);
+  });
+  return html;
+}
+
+function renderReplyHtml(id, r, depth) {
+  var indentClass = depth > 0 ? ' reply-children' : '';
+  var d = Math.min(depth, 4);
+  var html = '<div class="reply" style="margin-left:' + (d * 14) + 'px">';
+  html += '<div class="reply-body">' + esc(r.body) + '</div>';
+  html += '<div class="reply-meta"><span>' + esc(r.author) + '</span><span>&middot;</span><span>' + fmtDate(r.createdAt) + '</span>';
+  html += '<button class="reply-link" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
+  if (canDelete(r.author)) {
+    html += '<button class="reply-link" style="color:var(--red)" onclick="deleteReply(\'' + id + '\')">Delete</button>';
+  }
+  html += '</div>';
+  if (replyOpenFor === id) {
+    html += '<div class="mini-composer show">';
+    html += '<textarea id="rt-' + id + '" rows="2" placeholder="Reply..."></textarea>';
+    html += '<div class="mini-composer-actions"><button class="btn btn-xs btn-red" onclick="submitReply(\'' + r.noteId + '\',\'' + id + '\')">Post</button><button class="btn btn-xs btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+    html += '</div>';
+  }
+  var children = Object.entries(replies).filter(function(p) { return p[1].parentId === id; })
+    .sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
+  children.forEach(function(pair) {
+    html += renderReplyHtml(pair[0], pair[1], depth + 1);
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ---- EXPORT ---- */
+
+function renderExport() {
+  document.getElementById('admin-danger').classList.toggle('hidden', !isAdmin);
+}
+
+function exportReport() {
+  var scope = document.querySelector('input[name="exp-scope"]:checked').value;
+  var subjList = Object.entries(subjects).sort(function(a, b) { return (a[1].title || '').localeCompare(b[1].title || ''); });
+  var anyContent = false;
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Miller Notes — Rundoo Integration Report</title>' +
+    '<style>body{font-family:Georgia,serif;font-size:14px;max-width:760px;margin:40px auto;color:#1a1a1a;line-height:1.6}' +
+    'h1{font-size:26px;font-weight:900;margin-bottom:2px}.sub{font-size:13px;color:#888;margin-bottom:36px}' +
+    'h2{font-size:17px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;border-top:3px solid #1a1a1a;padding-top:8px;margin:30px 0 12px}' +
+    '.note{border-left:3px solid #ccc;padding:10px 14px;margin-bottom:16px;break-inside:avoid}' +
+    '.note-title{font-weight:700;font-size:15px}.status{font-size:11px;font-weight:700;text-transform:uppercase;color:#888;margin-left:8px}' +
+    '.note-body{margin:6px 0;color:#333}.note-foot{font-size:12px;color:#999;margin-bottom:6px}' +
+    '.reply{margin-left:18px;border-left:2px solid #eee;padding:4px 10px;margin-top:6px;font-size:13px}' +
+    '.reply-foot{font-size:11px;color:#999}' +
+    '@media print{body{margin:20px}}</style></head><body>' +
+    '<h1>Miller Notes</h1><div class="sub">Rundoo integration issues &mdash; ' +
+    (scope === 'open' ? 'open items only' : 'full report') + ' &mdash; printed ' +
+    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + '</div>';
+
+  subjList.forEach(function(sp) {
+    var sid = sp[0], s = sp[1];
+    var noteList = Object.entries(notes).filter(function(p) {
+      return p[1].subjectId === sid && (scope === 'all' || p[1].status === 'open');
+    }).sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
+    if (!noteList.length) return;
+    anyContent = true;
+    html += '<h2>' + (s.title || '').replace(/</g, '&lt;') + '</h2>';
+    noteList.forEach(function(np) {
+      var nid = np[0], n = np[1];
+      html += '<div class="note"><div class="note-title">' + (n.title || '').replace(/</g, '&lt;') +
+        '<span class="status">' + statusLabel(n.status) + '</span></div>';
+      html += '<div class="note-foot">' + (n.author || '').replace(/</g, '&lt;') + ' &middot; ' + fmtDate(n.createdAt) + '</div>';
+      if (n.body) html += '<div class="note-body">' + (n.body || '').replace(/</g, '&lt;').replace(/\n/g, '<br>') + '</div>';
+      var noteReplies = Object.entries(replies).filter(function(p) { return p[1].noteId === nid; })
+        .sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
+      noteReplies.forEach(function(rp) {
+        var r = rp[1];
+        html += '<div class="reply">' + (r.body || '').replace(/</g, '&lt;').replace(/\n/g, '<br>') +
+          '<div class="reply-foot">' + (r.author || '').replace(/</g, '&lt;') + ' &middot; ' + fmtDate(r.createdAt) + '</div></div>';
       });
-      sorted.forEach(function(p) {
-        var m = p[1];
-        html += '<div class="entry">';
-        html += '<div class="entry-title">' + (m.title || '').replace(/</g, '&lt;') + '</div>';
-        html += '<div class="entry-body">' + (m.cleanBody || '').replace(/</g, '&lt;') + '</div>';
-        if (m.sources && m.sources.length) {
-          html += '<div class="entry-foot">per ' + m.sources.join(', ').replace(/</g, '&lt;') + '</div>';
-        }
-        html += '</div>';
-      });
+      html += '</div>';
     });
   });
+
+  if (!anyContent) { toast('Nothing to export yet'); return; }
   html += '</body></html>';
   var w = window.open('', '_blank');
   if (w) { w.document.write(html); w.document.close(); }
 }
 
-/* ---- CONSOLIDATION ---- */
-
-function renderConsolidate() {
+function clearAllData() {
   if (!isAdmin) return;
-  var body = document.getElementById('consolidate-body');
-  var unfiled = Object.entries(entries)
-    .filter(function(p) { return p[1].status === 'unfiled'; })
-    .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
-  var manualList = Object.entries(manual)
-    .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
-  var html = '';
-  html += '<div class="con-top">';
-  html += '<div style="font-size:15px;font-weight:700"><strong style="color:var(--red)">' + unfiled.length + '</strong> unfiled waiting</div>';
-  html += '</div>';
-  if (!unfiled.length) {
-    html += '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:15px">All caught up.</div>';
-  } else {
-    html += '<div class="con-section-head">Unfiled</div>';
-    unfiled.forEach(function(pair) {
-      var id = pair[0];
-      var e = pair[1];
-      html += '<div class="con-card">';
-      html += '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">';
-      html += '<span class="cat-tag ' + esc(e.category) + '">' + esc(catLabel(e.category)) + '</span>';
-      html += '<span style="font-size:15px;font-weight:700">' + esc(e.whatCameUp) + '</span>';
-      html += '</div>';
-      html += '<div style="font-size:14px;color:var(--gray2);line-height:1.5;white-space:pre-wrap;margin-bottom:6px">' + esc(e.whatLearned) + '</div>';
-      html += '<div style="font-size:12px;color:var(--muted)">';
-      if (e.source) html += 'per ' + esc(e.source) + ' &nbsp;&middot;&nbsp; ';
-      html += fmtDate(e.createdAt);
-      html += '</div>';
-      html += '<div class="con-actions">';
-      html += '<button class="btn btn-sm btn-green" onclick="openFileModal(\'' + id + '\')">File to Manual</button>';
-      html += '<button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteEntry(\'' + id + '\')">Delete</button>';
-      html += '</div>';
-      html += '</div>';
-    });
+  if (!confirm('This deletes ALL subjects, notes, and replies. Cannot undo. Continue?')) return;
+  if (!confirm('Really sure? Type OK in your head and click OK once more.')) return;
+  Promise.all([
+    db.ref(DB_SUBJ).remove(),
+    db.ref(DB_NOTE).remove(),
+    db.ref(DB_REPLY).remove()
+  ]).then(function() {
+    toast('All data cleared');
+    goSubjects();
+  }).catch(function() { toast('Clear failed'); });
+}
+
+/* ---- APP ICON (canvas-generated, self-contained) ---- */
+
+function buildIcon() {
+  var c = document.createElement('canvas');
+  c.width = 192; c.height = 192;
+  var ctx = c.getContext('2d');
+  var r = 40;
+  ctx.fillStyle = '#1a1a1a';
+  roundRect(ctx, 0, 0, 192, 192, r);
+  ctx.fill();
+  ctx.fillStyle = '#CC0000';
+  roundRect(ctx, 10, 10, 172, 172, r - 6);
+  ctx.fill();
+  // notepad
+  ctx.fillStyle = '#fff';
+  roundRect(ctx, 52, 38, 88, 116, 8);
+  ctx.fill();
+  ctx.fillStyle = '#CC0000';
+  ctx.fillRect(52, 38, 88, 16);
+  ctx.fillStyle = '#ccc';
+  for (var i = 0; i < 4; i++) {
+    ctx.fillRect(64, 76 + i * 18, 64 - (i === 3 ? 24 : 0), 6);
   }
-  if (manualList.length) {
-    html += '<div class="con-section-head" style="margin-top:32px">Manual (' + manualList.length + ')</div>';
-    manualList.forEach(function(pair) {
-      var mid = pair[0];
-      var m = pair[1];
-      html += '<div class="con-card">';
-      html += '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:4px">';
-      html += '<span class="cat-tag ' + esc(m.category) + '">' + esc(catLabel(m.category)) + '</span>';
-      html += '<span style="font-size:15px;font-weight:700">' + esc(m.title) + '</span>';
-      html += '</div>';
-      if (m.section && m.section !== 'General') {
-        html += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">' + esc(m.section) + '</div>';
-      }
-      html += '<div class="con-actions">';
-      html += '<button class="btn btn-sm" onclick="openManualEdit(\'' + mid + '\')">Edit</button>';
-      html += '</div>';
-      html += '</div>';
-    });
-  }
-  body.innerHTML = html;
+  var url = c.toDataURL('image/png');
+  document.getElementById('fav-link').href = url;
+  document.getElementById('touch-link').href = url;
+  var img = document.getElementById('install-icon-img');
+  if (img) img.src = url;
+  buildManifest(url);
 }
 
-/* ---- FILE TO MANUAL ---- */
-
-function openFileModal(id) {
-  var e = entries[id];
-  if (!e) return;
-  document.getElementById('modal-file-raw').innerHTML =
-    '<strong>What came up:</strong> ' + esc(e.whatCameUp) +
-    '<br><strong>What they said:</strong> ' + esc(e.whatLearned) +
-    (e.source ? '<br><strong>Source:</strong> ' + esc(e.source) : '');
-  document.getElementById('mf-section').value = '';
-  document.getElementById('mf-title').value = e.whatCameUp || '';
-  document.getElementById('mf-body').value = e.whatLearned || '';
-  document.getElementById('mf-sources').value = e.source || '';
-  openModal('modal-file');
-  fileEntryId = id; // set AFTER openModal — closeModal() inside it resets this to null
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
-function doFile() {
-  if (!fileEntryId) return;
-  var e = entries[fileEntryId];
-  if (!e) return;
-  var section = document.getElementById('mf-section').value.trim() || 'General';
-  var title = document.getElementById('mf-title').value.trim();
-  var body = document.getElementById('mf-body').value.trim();
-  var sourcesRaw = document.getElementById('mf-sources').value.trim();
-  if (!title) { toast('Need a title'); document.getElementById('mf-title').focus(); return; }
-  if (!body) { toast('Need a body'); document.getElementById('mf-body').focus(); return; }
-  var sources = sourcesRaw
-    ? sourcesRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
-    : [];
-  var manEntry = {
-    createdAt: Date.now(),
-    category: e.category,
-    section: section,
-    title: title,
-    cleanBody: body,
-    sources: sources,
-    entryIds: [fileEntryId]
+function buildManifest(iconUrl) {
+  var manifest = {
+    name: 'Miller Notes',
+    short_name: 'Notes',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#f5f2ee',
+    theme_color: '#1a1a1a',
+    icons: [
+      { src: iconUrl, sizes: '192x192', type: 'image/png' },
+      { src: iconUrl, sizes: '512x512', type: 'image/png' }
+    ]
   };
-  var eid = fileEntryId;
-  db.ref(DB_MAN).push(manEntry, function(err) {
-    if (err) { toast('Save failed'); return; }
-    setTimeout(function() {
-      db.ref(DB_ENT + '/' + eid).update({ status: 'filed', manualSection: section });
-    }, 0);
-    closeModal();
-    toast('Filed.');
-    if (curTab === 'consolidate') renderConsolidate();
-  });
-}
-
-/* ---- MANUAL EDIT ---- */
-
-function openManualEdit(id) {
-  var m = manual[id];
-  if (!m) return;
-  document.getElementById('me-cat').value = m.category || 'advice';
-  document.getElementById('me-section').value = m.section || '';
-  document.getElementById('me-title').value = m.title || '';
-  document.getElementById('me-body').value = m.cleanBody || '';
-  document.getElementById('me-sources').value = m.sources ? m.sources.join(', ') : '';
-  openModal('modal-manual-edit');
-  editManualId = id; // set AFTER openModal — closeModal() inside it resets this to null
-}
-
-function saveManualEdit() {
-  if (!editManualId) return;
-  var sourcesRaw = document.getElementById('me-sources').value.trim();
-  var upd = {
-    category: document.getElementById('me-cat').value,
-    section: document.getElementById('me-section').value.trim() || 'General',
-    title: document.getElementById('me-title').value.trim(),
-    cleanBody: document.getElementById('me-body').value.trim(),
-    sources: sourcesRaw
-      ? sourcesRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
-      : []
-  };
-  if (!upd.title || !upd.cleanBody) { toast('Title and body are required'); return; }
-  db.ref(DB_MAN + '/' + editManualId).update(upd, function(err) {
-    if (err) { toast('Save failed'); return; }
-    closeModal();
-    toast('Saved.');
-    if (curTab === 'manual') renderManual();
-    if (curTab === 'consolidate') renderConsolidate();
-  });
-}
-
-function deleteManualEntry() {
-  if (!editManualId || !isAdmin) return;
-  if (!confirm('Delete this manual entry? Cannot undo.')) return;
-  var id = editManualId;
-  db.ref(DB_MAN + '/' + id).remove(function(err) {
-    if (err) { toast('Delete failed'); return; }
-    closeModal();
-    toast('Deleted.');
-    if (curTab === 'manual') renderManual();
-    if (curTab === 'consolidate') renderConsolidate();
-  });
+  var blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  var link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
 }
 
 /* ---- FIREBASE ---- */
@@ -848,31 +835,30 @@ function initFB() {
     syncPill(snap.val() ? 'ok' : 'warn');
   });
 
-  db.ref(DB_ENT).on('value', function(snap) {
-    entries = {};
-    if (snap.val()) {
-      snap.forEach(function(c) {
-        if (c.val()) entries[c.key] = c.val();
-      });
-    }
-    updatePileBadge();
-    if (curTab === 'pile') renderPile();
-    if (curTab === 'consolidate' && isAdmin) renderConsolidate();
+  db.ref(DB_SUBJ).on('value', function(snap) {
+    subjects = {};
+    if (snap.val()) snap.forEach(function(c) { if (c.val()) subjects[c.key] = c.val(); });
+    if (curTab === 'board' && screen === 'subjects') renderBoard();
   }, function() { syncPill('err'); });
 
-  db.ref(DB_MAN).on('value', function(snap) {
-    manual = {};
-    if (snap.val()) {
-      snap.forEach(function(c) {
-        if (c.val()) manual[c.key] = c.val();
-      });
-    }
-    if (curTab === 'manual') renderManual();
-    if (curTab === 'consolidate' && isAdmin) renderConsolidate();
+  db.ref(DB_NOTE).on('value', function(snap) {
+    notes = {};
+    if (snap.val()) snap.forEach(function(c) { if (c.val()) notes[c.key] = c.val(); });
+    if (curTab === 'board') renderBoard();
+  }, function() { syncPill('err'); });
+
+  db.ref(DB_REPLY).on('value', function(snap) {
+    replies = {};
+    if (snap.val()) snap.forEach(function(c) { if (c.val()) replies[c.key] = c.val(); });
+    if (curTab === 'board' && screen === 'thread') renderBoard();
   }, function() { syncPill('err'); });
 }
 
+myName = localStorage.getItem('mn_username') || '';
+document.getElementById('who-pill').textContent = myName ? ('posting as ' + myName) : 'posting as ...';
+buildIcon();
 initFB();
+if (!myName) { setTimeout(function() { openNameModal(false); }, 300); }
 </script>
 </body>
 </html>
