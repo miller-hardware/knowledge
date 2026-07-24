@@ -70,18 +70,11 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 .subj-meta{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.5}
 .subj-count{background:var(--off);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gray2);flex-shrink:0}
 
-.note-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px;cursor:pointer}
-.note-card:hover{border-color:#bbb}
-.note-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
-.status-pill{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:10px;flex-shrink:0}
-.status-pill.open{background:#fdf3e0;color:var(--amber)}
-.status-pill.fixed{background:#eaf4e4;color:var(--green)}
-.status-pill.sent{background:#e4eef8;color:var(--blue)}
-.note-title{font-size:16px;font-weight:700;color:var(--dark)}
-.note-snip{font-size:14px;color:var(--gray2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px}
-.note-meta{font-size:12px;color:var(--muted)}
+/* NOTES — flowing list, each note shown with its full reply thread inline */
+.note-block{margin-bottom:28px}
+.note-block + .note-block{border-top:2px solid var(--silver);padding-top:24px}
 
-/* THREAD */
+/* THREAD (per-note detail, now rendered inline within each .note-block) */
 .thread-note{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:18px;margin-bottom:16px}
 .thread-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px}
 .thread-body{font-size:15px;line-height:1.6;color:var(--dark);white-space:pre-wrap;margin-bottom:12px}
@@ -284,10 +277,9 @@ var db;
 var isAdmin = false;
 var myName = "";
 var curTab = "board";
-var screen = "subjects"; // subjects | notes | thread
+var screen = "subjects"; // subjects | notes
 var curSubjectId = null;
-var curNoteId = null;
-var replyOpenFor = null; // id of reply/note currently showing its mini-composer
+var replyOpenFor = null; // id of a note or reply currently showing its (expanded) composer
 
 var subjects = {};
 var notes = {};
@@ -417,20 +409,13 @@ function canDelete(authorName) {
 function goSubjects() {
   screen = 'subjects';
   curSubjectId = null;
-  curNoteId = null;
+  replyOpenFor = null;
   renderBoard();
 }
 
 function goNotes(subjectId) {
   screen = 'notes';
   curSubjectId = subjectId;
-  curNoteId = null;
-  renderBoard();
-}
-
-function goThread(noteId) {
-  screen = 'thread';
-  curNoteId = noteId;
   replyOpenFor = null;
   renderBoard();
 }
@@ -544,7 +529,7 @@ function submitReply(noteId, parentId) {
     // The optimistic on('value') listener may already have re-rendered with
     // the composer still open (it fires before this server-ack callback), so
     // force a fresh render now that replyOpenFor is cleared.
-    if (curTab === 'board' && screen === 'thread') renderBoard();
+    if (curTab === 'board' && screen === 'notes') renderBoard();
   });
 }
 
@@ -573,7 +558,6 @@ function renderBoard() {
   var el = document.getElementById('board-body');
   if (screen === 'subjects') { el.innerHTML = renderSubjectsHtml(); return; }
   if (screen === 'notes') { el.innerHTML = renderNotesHtml(); return; }
-  if (screen === 'thread') { el.innerHTML = renderThreadHtml(); return; }
 }
 
 function renderSubjectsHtml() {
@@ -611,7 +595,7 @@ function renderNotesHtml() {
   var html = '<button class="btn-back" onclick="goSubjects()">&larr; All Subjects</button>';
   html += '<div class="board-top"><h1>' + esc(s.title) + '</h1><button class="btn btn-red btn-sm" onclick="openNoteModal()">+ New Note</button></div>';
   if (isAdmin) {
-    html += '<div style="margin-bottom:12px"><button class="btn btn-xs btn-ghost" style="color:var(--red)" onclick="deleteSubject(\'' + curSubjectId + '\')">Delete this subject</button></div>';
+    html += '<div style="margin-bottom:16px"><button class="btn btn-xs btn-ghost" style="color:var(--red)" onclick="deleteSubject(\'' + curSubjectId + '\')">Delete this subject</button></div>';
   }
   var list = Object.entries(notes).filter(function(p) { return p[1].subjectId === curSubjectId; })
     .sort(function(a, b) { return b[1].createdAt - a[1].createdAt; });
@@ -620,14 +604,7 @@ function renderNotesHtml() {
     return html;
   }
   list.forEach(function(pair) {
-    var id = pair[0], n = pair[1];
-    var replyCount = Object.keys(replies).filter(function(rid) { return replies[rid].noteId === id; }).length;
-    html += '<div class="note-card" onclick="goThread(\'' + id + '\')">';
-    html += '<div class="note-head"><span class="status-pill ' + n.status + '">' + statusLabel(n.status) + '</span></div>';
-    html += '<div class="note-title">' + esc(n.title) + '</div>';
-    if (n.body) html += '<div class="note-snip">' + esc(n.body) + '</div>';
-    html += '<div class="note-meta">' + esc(n.author) + ' &middot; ' + fmtDate(n.createdAt) + ' &middot; ' + replyCount + ' repl' + (replyCount === 1 ? 'y' : 'ies') + '</div>';
-    html += '</div>';
+    html += renderNoteBlockHtml(pair[0], pair[1]);
   });
   return html;
 }
@@ -636,37 +613,40 @@ function statusLabel(s) {
   return s === 'fixed' ? 'Fixed' : s === 'sent' ? 'Sent to Rundoo' : 'Open';
 }
 
-function renderThreadHtml() {
-  var n = notes[curNoteId];
-  if (!n) { screen = 'notes'; return renderNotesHtml(); }
-  var html = '<button class="btn-back" onclick="goNotes(\'' + n.subjectId + '\')">&larr; ' + esc((subjects[n.subjectId] || {}).title || 'Back') + '</button>';
+// A note plus its full reply thread, stair-stepped inline — no click-through needed.
+function renderNoteBlockHtml(id, n) {
+  var html = '<div class="note-block">';
   html += '<div class="thread-note">';
   html += '<div class="thread-title">' + esc(n.title) + '</div>';
   if (n.body) html += '<div class="thread-body">' + esc(n.body) + '</div>';
   html += '<div class="thread-meta"><span>' + esc(n.author) + '</span><span>&middot;</span><span>' + fmtDate(n.createdAt) + '</span></div>';
   html += '<div class="status-pills">';
   ['open', 'fixed', 'sent'].forEach(function(st) {
-    html += '<button class="status-opt ' + st + (n.status === st ? ' sel' : '') + '" onclick="setNoteStatus(\'' + curNoteId + '\',\'' + st + '\')">' + statusLabel(st) + '</button>';
+    html += '<button class="status-opt ' + st + (n.status === st ? ' sel' : '') + '" onclick="setNoteStatus(\'' + id + '\',\'' + st + '\')">' + statusLabel(st) + '</button>';
   });
   html += '</div>';
+  html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">';
+  html += '<button class="btn btn-sm" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
   if (canDelete(n.author)) {
-    html += '<div style="margin-top:12px"><button class="btn btn-xs btn-ghost" style="color:var(--red)" onclick="deleteNote(\'' + curNoteId + '\')">Delete note</button></div>';
+    html += '<button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteNote(\'' + id + '\')">Delete note</button>';
+  }
+  html += '</div>';
+  if (replyOpenFor === id) {
+    html += '<div class="mini-composer show" style="margin-top:12px">';
+    html += '<textarea id="rt-' + id + '" rows="3" placeholder="Write a reply..."></textarea>';
+    html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + id + '\',null)">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+    html += '</div>';
   }
   html += '</div>';
 
-  html += '<div class="reply-composer">';
-  html += '<div class="replies-head">Add a reply</div>';
-  html += '<textarea id="rt-' + curNoteId + '" rows="3" placeholder="Write a reply..." style="width:100%;padding:10px 12px;border:1.5px solid var(--silver);border-radius:4px;font-size:16px;font-family:\'Barlow\',sans-serif;resize:vertical"></textarea>';
-  html += '<div style="margin-top:10px"><button class="btn btn-red" onclick="submitReply(\'' + curNoteId + '\',null)">Reply</button></div>';
-  html += '</div>';
-
-  var topLevel = Object.entries(replies).filter(function(p) { return p[1].noteId === curNoteId && !p[1].parentId; })
+  var noteReplyIds = Object.keys(replies).filter(function(rid) { return replies[rid].noteId === id; });
+  html += '<div class="replies-head">' + noteReplyIds.length + ' repl' + (noteReplyIds.length === 1 ? 'y' : 'ies') + '</div>';
+  var topLevel = Object.entries(replies).filter(function(p) { return p[1].noteId === id && !p[1].parentId; })
     .sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
-  html += '<div class="replies-head">' + Object.keys(replies).filter(function(rid) { return replies[rid].noteId === curNoteId; }).length + ' repl' +
-    (Object.keys(replies).filter(function(rid) { return replies[rid].noteId === curNoteId; }).length === 1 ? 'y' : 'ies') + '</div>';
   topLevel.forEach(function(pair) {
     html += renderReplyHtml(pair[0], pair[1], 0);
   });
+  html += '</div>';
   return html;
 }
 
@@ -851,7 +831,9 @@ function initFB() {
   db.ref(DB_REPLY).on('value', function(snap) {
     replies = {};
     if (snap.val()) snap.forEach(function(c) { if (c.val()) replies[c.key] = c.val(); });
-    if (curTab === 'board' && screen === 'thread') renderBoard();
+    // Both the subjects screen (reply counts) and notes screen (full inline
+    // threads) render reply data now, so re-render on any tab/screen combo.
+    if (curTab === 'board') renderBoard();
   }, function() { syncPill('err'); });
 }
 
