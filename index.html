@@ -280,6 +280,7 @@ var curTab = "board";
 var screen = "subjects"; // subjects | notes
 var curSubjectId = null;
 var replyOpenFor = null; // id of a note or reply currently showing its (expanded) composer
+var editingId = null; // id of a note or reply currently showing its inline edit form
 
 var subjects = {};
 var notes = {};
@@ -502,10 +503,31 @@ function deleteNote(id) {
   });
 }
 
+function saveNoteEdit(id) {
+  var n = notes[id];
+  if (!n || !canDelete(n.author)) return;
+  var title = document.getElementById('et-title-' + id).value.trim();
+  var body = document.getElementById('et-body-' + id).value.trim();
+  if (!title) { toast('Needs a title'); return; }
+  db.ref(DB_NOTE + '/' + id).update({ title: title, body: body, editedAt: Date.now() }, function(err) {
+    if (err) { toast('Save failed'); return; }
+    editingId = null;
+    toast('Note updated');
+    if (curTab === 'board' && screen === 'notes') renderBoard();
+  });
+}
+
 /* ---- REPLIES ---- */
 
 function toggleReplyBox(key) {
   replyOpenFor = (replyOpenFor === key) ? null : key;
+  editingId = null;
+  renderBoard();
+}
+
+function toggleEdit(key) {
+  editingId = (editingId === key) ? null : key;
+  replyOpenFor = null;
   renderBoard();
 }
 
@@ -550,6 +572,19 @@ function deleteReply(id) {
   }
   toDelete.forEach(function(rid) { db.ref(DB_REPLY + '/' + rid).remove(); });
   toast('Reply deleted');
+}
+
+function saveReplyEdit(id) {
+  var r = replies[id];
+  if (!r || !canDelete(r.author)) return;
+  var body = document.getElementById('et-reply-' + id).value.trim();
+  if (!body) { toast('Write something first'); return; }
+  db.ref(DB_REPLY + '/' + id).update({ body: body, editedAt: Date.now() }, function(err) {
+    if (err) { toast('Save failed'); return; }
+    editingId = null;
+    toast('Reply updated');
+    if (curTab === 'board' && screen === 'notes') renderBoard();
+  });
 }
 
 /* ---- RENDER: BOARD ---- */
@@ -617,25 +652,33 @@ function statusLabel(s) {
 function renderNoteBlockHtml(id, n) {
   var html = '<div class="note-block">';
   html += '<div class="thread-note">';
-  html += '<div class="thread-title">' + esc(n.title) + '</div>';
-  if (n.body) html += '<div class="thread-body">' + esc(n.body) + '</div>';
-  html += '<div class="thread-meta"><span>' + esc(n.author) + '</span><span>&middot;</span><span>' + fmtDate(n.createdAt) + '</span></div>';
-  html += '<div class="status-pills">';
-  ['open', 'fixed', 'sent'].forEach(function(st) {
-    html += '<button class="status-opt ' + st + (n.status === st ? ' sel' : '') + '" onclick="setNoteStatus(\'' + id + '\',\'' + st + '\')">' + statusLabel(st) + '</button>';
-  });
-  html += '</div>';
-  html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">';
-  html += '<button class="btn btn-sm" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
-  if (canDelete(n.author)) {
-    html += '<button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteNote(\'' + id + '\')">Delete note</button>';
-  }
-  html += '</div>';
-  if (replyOpenFor === id) {
-    html += '<div class="mini-composer show" style="margin-top:12px">';
-    html += '<textarea id="rt-' + id + '" rows="3" placeholder="Write a reply..."></textarea>';
-    html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + id + '\',null)">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+  if (editingId === id) {
+    html += '<div class="field"><input type="text" id="et-title-' + id + '" value="' + esc(n.title) + '" maxlength="150"></div>';
+    html += '<div class="field"><textarea id="et-body-' + id + '" rows="5">' + esc(n.body || '') + '</textarea></div>';
+    html += '<div style="display:flex;gap:8px"><button class="btn btn-sm btn-red" onclick="saveNoteEdit(\'' + id + '\')">Save</button><button class="btn btn-sm btn-ghost" onclick="toggleEdit(\'' + id + '\')">Cancel</button></div>';
+  } else {
+    html += '<div class="thread-title">' + esc(n.title) + '</div>';
+    if (n.body) html += '<div class="thread-body">' + esc(n.body) + '</div>';
+    html += '<div class="thread-meta"><span>' + esc(n.author) + '</span><span>&middot;</span><span>' + fmtDate(n.createdAt) + '</span>' +
+      (n.editedAt ? '<span title="Edited ' + fmtDate(n.editedAt) + '">(edited)</span>' : '') + '</div>';
+    html += '<div class="status-pills">';
+    ['open', 'fixed', 'sent'].forEach(function(st) {
+      html += '<button class="status-opt ' + st + (n.status === st ? ' sel' : '') + '" onclick="setNoteStatus(\'' + id + '\',\'' + st + '\')">' + statusLabel(st) + '</button>';
+    });
     html += '</div>';
+    html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="btn btn-sm" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
+    if (canDelete(n.author)) {
+      html += '<button class="btn btn-sm btn-ghost" onclick="toggleEdit(\'' + id + '\')">Edit</button>';
+      html += '<button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteNote(\'' + id + '\')">Delete note</button>';
+    }
+    html += '</div>';
+    if (replyOpenFor === id) {
+      html += '<div class="mini-composer show" style="margin-top:12px">';
+      html += '<textarea id="rt-' + id + '" rows="3" placeholder="Write a reply..."></textarea>';
+      html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + id + '\',null)">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+      html += '</div>';
+    }
   }
   html += '</div>';
 
@@ -654,18 +697,25 @@ function renderReplyHtml(id, r, depth) {
   var indentClass = depth > 0 ? ' reply-children' : '';
   var d = Math.min(depth, 4);
   var html = '<div class="reply" style="margin-left:' + (d * 16) + 'px">';
-  html += '<div class="reply-body">' + esc(r.body) + '</div>';
-  html += '<div class="reply-meta"><span>' + esc(r.author) + '</span><span>&middot;</span><span>' + fmtDate(r.createdAt) + '</span>';
-  html += '<button class="reply-link" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
-  if (canDelete(r.author)) {
-    html += '<button class="reply-link" style="color:var(--red)" onclick="deleteReply(\'' + id + '\')">Delete</button>';
-  }
-  html += '</div>';
-  if (replyOpenFor === id) {
-    html += '<div class="mini-composer show">';
-    html += '<textarea id="rt-' + id + '" rows="2" placeholder="Reply..."></textarea>';
-    html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + r.noteId + '\',\'' + id + '\')">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+  if (editingId === id) {
+    html += '<div class="field"><textarea id="et-reply-' + id + '" rows="3">' + esc(r.body) + '</textarea></div>';
+    html += '<div style="display:flex;gap:8px"><button class="btn btn-sm btn-red" onclick="saveReplyEdit(\'' + id + '\')">Save</button><button class="btn btn-sm btn-ghost" onclick="toggleEdit(\'' + id + '\')">Cancel</button></div>';
+  } else {
+    html += '<div class="reply-body">' + esc(r.body) + '</div>';
+    html += '<div class="reply-meta"><span>' + esc(r.author) + '</span><span>&middot;</span><span>' + fmtDate(r.createdAt) + '</span>' +
+      (r.editedAt ? '<span title="Edited ' + fmtDate(r.editedAt) + '">(edited)</span>' : '');
+    html += '<button class="reply-link" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
+    if (canDelete(r.author)) {
+      html += '<button class="reply-link" onclick="toggleEdit(\'' + id + '\')">Edit</button>';
+      html += '<button class="reply-link" style="color:var(--red)" onclick="deleteReply(\'' + id + '\')">Delete</button>';
+    }
     html += '</div>';
+    if (replyOpenFor === id) {
+      html += '<div class="mini-composer show">';
+      html += '<textarea id="rt-' + id + '" rows="2" placeholder="Reply..."></textarea>';
+      html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + r.noteId + '\',\'' + id + '\')">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+      html += '</div>';
+    }
   }
   var children = Object.entries(replies).filter(function(p) { return p[1].parentId === id; })
     .sort(function(a, b) { return a[1].createdAt - b[1].createdAt; });
