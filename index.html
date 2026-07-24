@@ -67,7 +67,7 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 .subj-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .subj-card:hover{border-color:#bbb}
 .subj-title{font-size:16px;font-weight:700;color:var(--dark)}
-.subj-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.subj-meta{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.5}
 .subj-count{background:var(--off);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gray2);flex-shrink:0}
 
 .note-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:10px;cursor:pointer}
@@ -93,17 +93,17 @@ body{font-family:'Barlow',sans-serif;font-size:16px;color:var(--dark);background
 .status-opt.sent.sel{background:#e4eef8;border-color:var(--blue);color:var(--blue)}
 
 .reply-composer{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:14px;margin-bottom:16px}
-.replies-head{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-.reply{border-left:3px solid var(--silver);padding:8px 0 8px 12px;margin-bottom:8px}
-.reply-body{font-size:14px;line-height:1.5;color:var(--dark);white-space:pre-wrap;margin-bottom:4px}
-.reply-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.reply-link{background:none;border:none;color:var(--gray2);font-size:12px;font-weight:700;cursor:pointer;padding:0;font-family:'Barlow',sans-serif}
-.reply-link:hover{color:var(--red)}
-.reply-children{margin-left:14px}
-.mini-composer{margin-top:8px;display:none}
+.replies-head{font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.reply{background:var(--white);border:1.5px solid var(--silver);border-left:4px solid var(--red);border-radius:5px;padding:12px 14px;margin-bottom:10px}
+.reply-body{font-size:16px;line-height:1.6;color:var(--dark);white-space:pre-wrap;margin-bottom:8px}
+.reply-meta{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.reply-link{background:var(--white);border:1.5px solid var(--silver);color:var(--gray2);font-size:13px;font-weight:700;cursor:pointer;padding:6px 12px;border-radius:4px;font-family:'Barlow',sans-serif}
+.reply-link:hover{color:var(--red);border-color:var(--red)}
+.reply-children{margin-left:16px}
+.mini-composer{margin-top:10px;display:none}
 .mini-composer.show{display:block}
-.mini-composer textarea{width:100%;padding:8px 10px;border:1.5px solid var(--silver);border-radius:4px;font-size:14px;font-family:'Barlow',sans-serif;resize:vertical;min-height:60px}
-.mini-composer-actions{display:flex;gap:6px;margin-top:6px}
+.mini-composer textarea{width:100%;padding:10px 12px;border:1.5px solid var(--silver);border-radius:4px;font-size:15px;font-family:'Barlow',sans-serif;resize:vertical;min-height:70px}
+.mini-composer-actions{display:flex;gap:8px;margin-top:8px}
 
 /* EXPORT */
 .export-card{background:var(--white);border-radius:6px;border:1.5px solid var(--silver);padding:18px;margin-bottom:16px}
@@ -589,17 +589,18 @@ function renderSubjectsHtml() {
     var id = pair[0], s = pair[1];
     var noteIds = Object.keys(notes).filter(function(nid) { return notes[nid].subjectId === id; });
     var openCount = noteIds.filter(function(nid) { return notes[nid].status === 'open'; }).length;
-    var lastTs = noteIds.reduce(function(max, nid) { return Math.max(max, notes[nid].createdAt || 0); }, s.createdAt || 0);
+    var replyIds = Object.keys(replies).filter(function(rid) { return noteIds.indexOf(replies[rid].noteId) !== -1; });
+    var lastTs = s.createdAt || 0;
+    noteIds.forEach(function(nid) { lastTs = Math.max(lastTs, notes[nid].createdAt || 0); });
+    replyIds.forEach(function(rid) { lastTs = Math.max(lastTs, replies[rid].createdAt || 0); });
     html += '<div class="subj-card" onclick="goNotes(\'' + id + '\')">';
     html += '<div><div class="subj-title">' + esc(s.title) + '</div>';
     html += '<div class="subj-meta">' + noteIds.length + ' note' + (noteIds.length === 1 ? '' : 's') +
-      (openCount ? ' &middot; ' + openCount + ' open' : '') + ' &middot; last ' + fmtDate(lastTs) + '</div></div>';
+      ' &middot; ' + replyIds.length + ' repl' + (replyIds.length === 1 ? 'y' : 'ies') +
+      (openCount ? ' &middot; ' + openCount + ' open' : '') +
+      ' &middot; last activity ' + fmtDate(lastTs) + '</div></div>';
     html += '<div class="subj-count">' + noteIds.length + '</div>';
-    if (isAdmin) {
-      html += '</div>'; // close subj-card early replaced below actually keep structure simple
-    } else {
-      html += '</div>';
-    }
+    html += '</div>';
   });
   return html;
 }
@@ -655,8 +656,8 @@ function renderThreadHtml() {
 
   html += '<div class="reply-composer">';
   html += '<div class="replies-head">Add a reply</div>';
-  html += '<textarea id="rt-' + curNoteId + '" rows="3" placeholder="Write a reply..." style="width:100%;padding:8px 10px;border:1.5px solid var(--silver);border-radius:4px;font-size:14px;font-family:\'Barlow\',sans-serif;resize:vertical"></textarea>';
-  html += '<div style="margin-top:8px"><button class="btn btn-red btn-sm" onclick="submitReply(\'' + curNoteId + '\',null)">Reply</button></div>';
+  html += '<textarea id="rt-' + curNoteId + '" rows="3" placeholder="Write a reply..." style="width:100%;padding:10px 12px;border:1.5px solid var(--silver);border-radius:4px;font-size:16px;font-family:\'Barlow\',sans-serif;resize:vertical"></textarea>';
+  html += '<div style="margin-top:10px"><button class="btn btn-red" onclick="submitReply(\'' + curNoteId + '\',null)">Reply</button></div>';
   html += '</div>';
 
   var topLevel = Object.entries(replies).filter(function(p) { return p[1].noteId === curNoteId && !p[1].parentId; })
@@ -672,7 +673,7 @@ function renderThreadHtml() {
 function renderReplyHtml(id, r, depth) {
   var indentClass = depth > 0 ? ' reply-children' : '';
   var d = Math.min(depth, 4);
-  var html = '<div class="reply" style="margin-left:' + (d * 14) + 'px">';
+  var html = '<div class="reply" style="margin-left:' + (d * 16) + 'px">';
   html += '<div class="reply-body">' + esc(r.body) + '</div>';
   html += '<div class="reply-meta"><span>' + esc(r.author) + '</span><span>&middot;</span><span>' + fmtDate(r.createdAt) + '</span>';
   html += '<button class="reply-link" onclick="toggleReplyBox(\'' + id + '\')">Reply</button>';
@@ -683,7 +684,7 @@ function renderReplyHtml(id, r, depth) {
   if (replyOpenFor === id) {
     html += '<div class="mini-composer show">';
     html += '<textarea id="rt-' + id + '" rows="2" placeholder="Reply..."></textarea>';
-    html += '<div class="mini-composer-actions"><button class="btn btn-xs btn-red" onclick="submitReply(\'' + r.noteId + '\',\'' + id + '\')">Post</button><button class="btn btn-xs btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
+    html += '<div class="mini-composer-actions"><button class="btn btn-sm btn-red" onclick="submitReply(\'' + r.noteId + '\',\'' + id + '\')">Post</button><button class="btn btn-sm btn-ghost" onclick="toggleReplyBox(\'' + id + '\')">Cancel</button></div>';
     html += '</div>';
   }
   var children = Object.entries(replies).filter(function(p) { return p[1].parentId === id; })
